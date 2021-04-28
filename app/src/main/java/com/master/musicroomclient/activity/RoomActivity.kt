@@ -12,6 +12,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.master.musicroomclient.R
 import com.master.musicroomclient.adapter.MessageListAdapter
+import com.master.musicroomclient.dialog.RoomNameDialogFragment
+import com.master.musicroomclient.dialog.RoomNameDialogFragment.RoomNameDialogListener
 import com.master.musicroomclient.model.Message
 import com.master.musicroomclient.model.Room
 import com.master.musicroomclient.utils.ApiUtils
@@ -26,7 +28,7 @@ import retrofit2.Response
 import java.time.LocalDateTime
 
 
-class RoomActivity : AppCompatActivity(), EventListener {
+class RoomActivity : AppCompatActivity(), EventListener, RoomNameDialogListener {
 
     private val libVLC by lazy {
         LibVLC(this, ArrayList<String>().apply {
@@ -69,6 +71,9 @@ class RoomActivity : AppCompatActivity(), EventListener {
                     Log.i("CALL SUCCESS", room.toString())
                     roomName.text = room?.name
 
+                    val roomNameDialogFragment = RoomNameDialogFragment(this@RoomActivity)
+                    roomNameDialogFragment.isCancelable = false
+                    roomNameDialogFragment.show(supportFragmentManager, "room name tag")
 //                    initPlayer()
 
                 } else {
@@ -138,5 +143,9 @@ class RoomActivity : AppCompatActivity(), EventListener {
             Event.EncounteredError -> Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
             Event.Buffering -> Toast.makeText(this, "Buffering", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    override fun onDialogPositiveClose(name: String) {
+        Toast.makeText(this, "Name from dialog: $name", Toast.LENGTH_SHORT).show()
     }
 }
