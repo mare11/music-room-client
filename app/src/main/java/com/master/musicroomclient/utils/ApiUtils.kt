@@ -21,10 +21,8 @@ object ApiUtils {
         val interceptor = HttpLoggingInterceptor()
         interceptor.level = HttpLoggingInterceptor.Level.BASIC
         return OkHttpClient.Builder()
-//                .connectTimeout(120, TimeUnit.SECONDS)
-//                .readTimeout(120, TimeUnit.SECONDS)
-//                .writeTimeout(120, TimeUnit.SECONDS)
-                .addInterceptor(interceptor).build()
+                .addInterceptor(interceptor)
+                .build()
     }
 
     val musicRoomApi: MusicRoomApi by lazy {

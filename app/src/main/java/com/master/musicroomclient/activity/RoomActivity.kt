@@ -13,8 +13,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.GsonBuilder
 import com.master.musicroomclient.R
 import com.master.musicroomclient.adapter.MessageListAdapter
-import com.master.musicroomclient.dialog.RoomNameDialogFragment
-import com.master.musicroomclient.dialog.RoomNameDialogFragment.RoomNameDialogListener
+import com.master.musicroomclient.dialog.JoinRoomDialogFragment
+import com.master.musicroomclient.dialog.JoinRoomDialogFragment.JoinRoomDialogListener
 import com.master.musicroomclient.model.Message
 import com.master.musicroomclient.model.Room
 import com.master.musicroomclient.utils.ApiUtils
@@ -35,7 +35,7 @@ import ua.naiksoftware.stomp.dto.StompMessage
 import java.time.Instant
 
 
-class RoomActivity : AppCompatActivity(), EventListener, RoomNameDialogListener {
+class RoomActivity : AppCompatActivity(), EventListener, JoinRoomDialogListener {
 
     private val libVLC by lazy {
         LibVLC(this, ArrayList<String>().apply {
@@ -70,7 +70,6 @@ class RoomActivity : AppCompatActivity(), EventListener, RoomNameDialogListener 
         messageView.layoutManager = linearLayoutManager
 
         val roomName = findViewById<TextView>(R.id.room_name)
-
         val roomCode = intent.getStringExtra(ROOM_CODE_EXTRA)
                 ?: // TODO: show popup and handle this correctly
                 throw RuntimeException("null room code!")
@@ -84,24 +83,21 @@ class RoomActivity : AppCompatActivity(), EventListener, RoomNameDialogListener 
                     this@RoomActivity.room = room
                     roomName.text = room.name
 
-                    val roomNameDialogFragment = RoomNameDialogFragment(this@RoomActivity)
+                    val roomNameDialogFragment = JoinRoomDialogFragment(this@RoomActivity)
                     roomNameDialogFragment.isCancelable = false
-                    roomNameDialogFragment.show(supportFragmentManager, "room name tag")
+                    roomNameDialogFragment.show(supportFragmentManager, "join_room")
 //                    initPlayer()
                     connectToWebSocket()
 
                 } else {
-                    Log.i(
-                            "CALL FAILURE",
-                            "Error code: ${response.code()}, " +
-                                    "error message: ${response.message()}, " +
-                                    "error body: ${response.errorBody().toString()}"
-                    )
+                    setResult(RESULT_CANCELED)
+                    finish()
                 }
             }
 
             override fun onFailure(call: Call<Room>, t: Throwable) {
-                Log.i("CALL FAILURE", t.message ?: "error")
+                setResult(RESULT_CANCELED)
+                finish()
             }
         })
 

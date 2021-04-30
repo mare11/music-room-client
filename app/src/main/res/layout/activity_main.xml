@@ -18,7 +18,7 @@
             android:text="New room" />
 
         <EditText
-            android:id="@+id/room_code"
+            android:id="@+id/join_room_code_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="text"
