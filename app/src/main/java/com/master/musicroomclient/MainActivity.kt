@@ -2,6 +2,7 @@ package com.master.musicroomclient
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
@@ -16,20 +17,22 @@ class MainActivity : AppCompatActivity() {
 
         val roomCodeText = findViewById<EditText>(R.id.room_code)
 
-        val newRoomButton = findViewById<Button>(R.id.button)
+        val createRoomButton = findViewById<Button>(R.id.create_room_button)
 
-        newRoomButton.setOnClickListener {
+        val view = findViewById<View>(android.R.id.content)
+
+        createRoomButton.setOnClickListener {
 //            ApiUtils.musicRoomApi.createRoom()
             val snackBar = Snackbar.make(
-                window.decorView.rootView,
-                "Not yet implemented!",
-                Snackbar.LENGTH_SHORT
+                    view,
+                    "Not yet implemented!",
+                    Snackbar.LENGTH_SHORT
             )
             snackBar.setAction("Dismiss") { snackBar.dismiss() }
             snackBar.show()
         }
 
-        val joinRoomButton = findViewById<Button>(R.id.button2)
+        val joinRoomButton = findViewById<Button>(R.id.join_room_button)
         joinRoomButton.setOnClickListener {
             val roomActivityIntent = Intent(this, RoomActivity::class.java)
             roomActivityIntent.putExtra(ROOM_CODE_EXTRA, roomCodeText.text.toString())

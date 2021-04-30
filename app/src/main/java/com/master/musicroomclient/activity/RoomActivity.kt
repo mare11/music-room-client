@@ -10,6 +10,7 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.gson.GsonBuilder
 import com.master.musicroomclient.R
 import com.master.musicroomclient.adapter.MessageListAdapter
 import com.master.musicroomclient.dialog.RoomNameDialogFragment
@@ -18,6 +19,8 @@ import com.master.musicroomclient.model.Message
 import com.master.musicroomclient.model.Room
 import com.master.musicroomclient.utils.ApiUtils
 import com.master.musicroomclient.utils.Constants.ROOM_CODE_EXTRA
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import org.videolan.libvlc.LibVLC
 import org.videolan.libvlc.Media
 import org.videolan.libvlc.MediaPlayer.Event
@@ -25,7 +28,11 @@ import org.videolan.libvlc.MediaPlayer.EventListener
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.time.LocalDateTime
+import ua.naiksoftware.stomp.Stomp
+import ua.naiksoftware.stomp.StompClient
+import ua.naiksoftware.stomp.dto.LifecycleEvent
+import ua.naiksoftware.stomp.dto.StompMessage
+import java.time.Instant
 
 
 class RoomActivity : AppCompatActivity(), EventListener, RoomNameDialogListener {
@@ -43,16 +50,21 @@ class RoomActivity : AppCompatActivity(), EventListener, RoomNameDialogListener 
         org.videolan.libvlc.MediaPlayer(libVLC)
     }
     private val handler = Handler()
-    private val messageListAdapter = MessageListAdapter()
+    private lateinit var messageListAdapter: MessageListAdapter
 
     private val seekBar by lazy { findViewById<SeekBar>(R.id.player_seek_bar) }
+    private val messageView by lazy { findViewById<RecyclerView>(R.id.message_view) }
+
+    private val stompClient: StompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://192.168.1.9:8008/music-rooms")
+    private val compositeDisposable: CompositeDisposable = CompositeDisposable()
+    private val gson = GsonBuilder().create()
+    private lateinit var username: String
+    private lateinit var room: Room
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_room)
 
-        val messageView = findViewById<RecyclerView>(R.id.message_view)
-        messageView.adapter = messageListAdapter
         val linearLayoutManager = LinearLayoutManager(this)
         linearLayoutManager.stackFromEnd = true
         messageView.layoutManager = linearLayoutManager
@@ -66,15 +78,17 @@ class RoomActivity : AppCompatActivity(), EventListener, RoomNameDialogListener 
         val roomCall = ApiUtils.musicRoomApi.getRoomByCode(roomCode)
         roomCall.enqueue(object : Callback<Room> {
             override fun onResponse(call: Call<Room>, response: Response<Room>) {
-                if (response.isSuccessful) {
-                    val room = response.body()
+                val room = response.body()
+                if (response.isSuccessful && room != null) {
                     Log.i("CALL SUCCESS", room.toString())
-                    roomName.text = room?.name
+                    this@RoomActivity.room = room
+                    roomName.text = room.name
 
                     val roomNameDialogFragment = RoomNameDialogFragment(this@RoomActivity)
                     roomNameDialogFragment.isCancelable = false
                     roomNameDialogFragment.show(supportFragmentManager, "room name tag")
 //                    initPlayer()
+                    connectToWebSocket()
 
                 } else {
                     Log.i(
@@ -94,11 +108,52 @@ class RoomActivity : AppCompatActivity(), EventListener, RoomNameDialogListener 
         val sendMessageText = findViewById<EditText>(R.id.send_message_text)
         val sendMessageButton = findViewById<Button>(R.id.send_message_button)
         sendMessageButton.setOnClickListener {
-            val sender = if (messageListAdapter.itemCount % 2 == 0) "ME" else "Jack"
-            val message = Message(sendMessageText.text.toString(), sender, LocalDateTime.now())
-            messageListAdapter.addMessage(message)
-            sendMessageText.text.clear()
+            val sentMessage = Message(sendMessageText.text.toString(), this.username, Instant.now().toString())
+            val sendMessageDisposable = stompClient.send("/app/room/" + this.room.code, gson.toJson(sentMessage))
+                    .subscribe({
+                        Log.i("Send message", "STOMP message sent successfully")
+//                        messageListAdapter.addMessage(sentMessage)
+                        sendMessageText.text.clear()
+                    }, { throwable: Throwable? ->
+                        Log.e("Send message", "Error sending STOMP message", throwable)
+                        Toast.makeText(this, "Error sending message", Toast.LENGTH_SHORT).show()
+                    })
+            compositeDisposable.add(sendMessageDisposable)
         }
+    }
+
+    private fun connectToWebSocket() {
+        stompClient.connect()
+        val compositeDisposable = CompositeDisposable()
+        val lifecycleDisposable: Disposable = stompClient.lifecycle().subscribe { lifecycleEvent: LifecycleEvent ->
+            when (lifecycleEvent.type) {
+                LifecycleEvent.Type.OPENED -> {
+                    Log.i("Lifecycle event", "Stomp connection opened")
+                    Log.i("Lifecycle event", "Message received: " + lifecycleEvent.message)
+                }
+                LifecycleEvent.Type.ERROR -> Log.e("Lifecycle event", "Error", lifecycleEvent.exception)
+                LifecycleEvent.Type.CLOSED -> Log.i("Lifecycle event", "Stomp connection closed")
+                LifecycleEvent.Type.FAILED_SERVER_HEARTBEAT -> Log.w("Lifecycle event", "Stomp connection failed heartbeat")
+                else -> Log.e("Lifecycle event", "Error!")
+            }
+        }
+        compositeDisposable.add(lifecycleDisposable)
+
+        val topicDisposable: Disposable = stompClient.topic("/topic/room/" + this.room.code)
+                .subscribe { topicMessage: StompMessage ->
+                    val receivedMessage = gson.fromJson(topicMessage.payload, Message::class.java)
+                    Log.i("Received topic message", receivedMessage.toString())
+                    runOnUiThread {
+                        messageListAdapter.addMessage(receivedMessage)
+                    }
+                }
+        compositeDisposable.add(topicDisposable)
+    }
+
+    override fun onDestroy() {
+        stompClient.disconnect()
+        compositeDisposable.dispose()
+        super.onDestroy()
     }
 
     private fun initPlayer() {
@@ -147,5 +202,8 @@ class RoomActivity : AppCompatActivity(), EventListener, RoomNameDialogListener 
 
     override fun onDialogPositiveClose(name: String) {
         Toast.makeText(this, "Name from dialog: $name", Toast.LENGTH_SHORT).show()
+        this.username = name;
+        messageListAdapter = MessageListAdapter(this.username)
+        messageView.adapter = messageListAdapter
     }
 }
