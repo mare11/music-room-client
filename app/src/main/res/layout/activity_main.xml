@@ -1,35 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
+    android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <LinearLayout
+    <Button
+        android:id="@+id/create_room_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_gravity="end"
+        android:text="Create room" />
 
-        <Button
-            android:id="@+id/create_room_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="New room" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/user_rooms_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
-        <EditText
-            android:id="@+id/join_room_code_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="text"
-            android:hint="Room code" />
+    <View
+        android:id="@+id/space_view"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider" />
 
-        <Button
-            android:id="@+id/join_room_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Join room" />
+    <EditText
+        android:id="@+id/join_room_code_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Room code"
+        android:inputType="text" />
 
-    </LinearLayout>
+    <Button
+        android:id="@+id/join_room_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Join room" />
 
-</RelativeLayout>
+</LinearLayout>

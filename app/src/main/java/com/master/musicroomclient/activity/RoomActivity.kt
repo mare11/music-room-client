@@ -8,6 +8,7 @@ import android.os.PowerManager
 import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.GsonBuilder
@@ -19,6 +20,8 @@ import com.master.musicroomclient.model.Message
 import com.master.musicroomclient.model.Room
 import com.master.musicroomclient.utils.ApiUtils
 import com.master.musicroomclient.utils.Constants.ROOM_CODE_EXTRA
+import com.master.musicroomclient.utils.Constants.USER_NAME_PREFERENCE_KEY
+import com.master.musicroomclient.utils.Constants.USER_ROOMS_PREFERENCE_KEY
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import org.videolan.libvlc.LibVLC
@@ -55,11 +58,13 @@ class RoomActivity : AppCompatActivity(), EventListener, JoinRoomDialogListener 
     private val seekBar by lazy { findViewById<SeekBar>(R.id.player_seek_bar) }
     private val messageView by lazy { findViewById<RecyclerView>(R.id.message_view) }
 
-    private val stompClient: StompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://192.168.1.9:8008/music-rooms")
+    private val stompClient: StompClient =
+            Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://192.168.1.9:8008/music-rooms")
     private val compositeDisposable: CompositeDisposable = CompositeDisposable()
     private val gson = GsonBuilder().create()
     private lateinit var username: String
     private lateinit var room: Room
+    private var doubleBackToExitPressedOnce = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,7 +84,6 @@ class RoomActivity : AppCompatActivity(), EventListener, JoinRoomDialogListener 
             override fun onResponse(call: Call<Room>, response: Response<Room>) {
                 val room = response.body()
                 if (response.isSuccessful && room != null) {
-                    Log.i("CALL SUCCESS", room.toString())
                     this@RoomActivity.room = room
                     roomName.text = room.name
 
@@ -104,41 +108,51 @@ class RoomActivity : AppCompatActivity(), EventListener, JoinRoomDialogListener 
         val sendMessageText = findViewById<EditText>(R.id.send_message_text)
         val sendMessageButton = findViewById<Button>(R.id.send_message_button)
         sendMessageButton.setOnClickListener {
-            val sentMessage = Message(sendMessageText.text.toString(), this.username, Instant.now().toString())
-            val sendMessageDisposable = stompClient.send("/app/room/" + this.room.code, gson.toJson(sentMessage))
-                    .subscribe({
-                        Log.i("Send message", "STOMP message sent successfully")
-//                        messageListAdapter.addMessage(sentMessage)
-                        sendMessageText.text.clear()
-                    }, { throwable: Throwable? ->
-                        Log.e("Send message", "Error sending STOMP message", throwable)
-                        Toast.makeText(this, "Error sending message", Toast.LENGTH_SHORT).show()
-                    })
-            compositeDisposable.add(sendMessageDisposable)
+            val messageText = sendMessageText.text.toString()
+            if (messageText.isNotBlank()) {
+                val sentMessage = Message(messageText, this.username, Instant.now().toString())
+                val sendMessageDisposable =
+                        stompClient.send("/app/room/${this.room.code}", gson.toJson(sentMessage))
+                                .subscribe({
+                                    sendMessageText.text.clear()
+                                }, {
+                                    Toast.makeText(this, "Error sending message", Toast.LENGTH_SHORT).show()
+                                })
+                compositeDisposable.add(sendMessageDisposable)
+            }
         }
     }
 
     private fun connectToWebSocket() {
         stompClient.connect()
-        val compositeDisposable = CompositeDisposable()
-        val lifecycleDisposable: Disposable = stompClient.lifecycle().subscribe { lifecycleEvent: LifecycleEvent ->
-            when (lifecycleEvent.type) {
-                LifecycleEvent.Type.OPENED -> {
-                    Log.i("Lifecycle event", "Stomp connection opened")
-                    Log.i("Lifecycle event", "Message received: " + lifecycleEvent.message)
+        val lifecycleDisposable: Disposable =
+                stompClient.lifecycle().subscribe { lifecycleEvent: LifecycleEvent ->
+                    when (lifecycleEvent.type) {
+                        LifecycleEvent.Type.OPENED -> {
+                            Log.i("Lifecycle event", "Stomp connection opened")
+                            Log.i("Lifecycle event", "Message received: " + lifecycleEvent.message)
+                        }
+                        LifecycleEvent.Type.ERROR -> Log.e(
+                                "Lifecycle event",
+                                "Error",
+                                lifecycleEvent.exception
+                        )
+                        LifecycleEvent.Type.CLOSED -> Log.i(
+                                "Lifecycle event",
+                                "Stomp connection closed"
+                        )
+                        LifecycleEvent.Type.FAILED_SERVER_HEARTBEAT -> Log.w(
+                                "Lifecycle event",
+                                "Stomp connection failed heartbeat"
+                        )
+                        else -> Log.e("Lifecycle event", "Error!")
+                    }
                 }
-                LifecycleEvent.Type.ERROR -> Log.e("Lifecycle event", "Error", lifecycleEvent.exception)
-                LifecycleEvent.Type.CLOSED -> Log.i("Lifecycle event", "Stomp connection closed")
-                LifecycleEvent.Type.FAILED_SERVER_HEARTBEAT -> Log.w("Lifecycle event", "Stomp connection failed heartbeat")
-                else -> Log.e("Lifecycle event", "Error!")
-            }
-        }
         compositeDisposable.add(lifecycleDisposable)
 
-        val topicDisposable: Disposable = stompClient.topic("/topic/room/" + this.room.code)
+        val topicDisposable: Disposable = stompClient.topic("/topic/room/${this.room.code}")
                 .subscribe { topicMessage: StompMessage ->
                     val receivedMessage = gson.fromJson(topicMessage.payload, Message::class.java)
-                    Log.i("Received topic message", receivedMessage.toString())
                     runOnUiThread {
                         messageListAdapter.addMessage(receivedMessage)
                     }
@@ -150,6 +164,19 @@ class RoomActivity : AppCompatActivity(), EventListener, JoinRoomDialogListener 
         stompClient.disconnect()
         compositeDisposable.dispose()
         super.onDestroy()
+    }
+
+    override fun onBackPressed() {
+        if (doubleBackToExitPressedOnce) {
+            setResult(RESULT_OK)
+            super.onBackPressed()
+            return
+        }
+        doubleBackToExitPressedOnce = true
+        Toast.makeText(this, "Click BACK again to exit the room", Toast.LENGTH_SHORT).show()
+        handler.postDelayed({
+            doubleBackToExitPressedOnce = false
+        }, 2000)
     }
 
     private fun initPlayer() {
@@ -198,8 +225,14 @@ class RoomActivity : AppCompatActivity(), EventListener, JoinRoomDialogListener 
 
     override fun onDialogPositiveClose(name: String) {
         Toast.makeText(this, "Name from dialog: $name", Toast.LENGTH_SHORT).show()
-        this.username = name;
+        this.username = name
         messageListAdapter = MessageListAdapter(this.username)
         messageView.adapter = messageListAdapter
+        val defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        val userRooms =
+                defaultSharedPreferences.getStringSet(USER_ROOMS_PREFERENCE_KEY, HashSet<String>())
+        userRooms?.add(this.room.code)
+        defaultSharedPreferences.edit().putStringSet(USER_ROOMS_PREFERENCE_KEY, userRooms).apply()
+        defaultSharedPreferences.edit().putString(USER_NAME_PREFERENCE_KEY, this.username).apply()
     }
 }

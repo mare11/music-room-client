@@ -8,7 +8,9 @@ import android.os.Bundle
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.fragment.app.DialogFragment
+import androidx.preference.PreferenceManager
 import com.master.musicroomclient.R
+import com.master.musicroomclient.utils.Constants.USER_NAME_PREFERENCE_KEY
 
 class JoinRoomDialogFragment(private val dialogListener: JoinRoomDialogListener) : DialogFragment() {
 
@@ -23,8 +25,12 @@ class JoinRoomDialogFragment(private val dialogListener: JoinRoomDialogListener)
                     .setPositiveButton("OK", null)
                     .setNegativeButton("Cancel", null)
                     .create()
+            val defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(activityIt)
+            val userName = defaultSharedPreferences.getString(USER_NAME_PREFERENCE_KEY, "")
             dialog.setOnShowListener {
                 val nameInput = dialog.findViewById<EditText>(R.id.join_room_name_text)
+                nameInput.setText(userName)
+                nameInput.setSelection(nameInput.text.length)
                 // focus the field and show the keyboard
                 nameInput.requestFocus()
                 nameInput.postDelayed({
