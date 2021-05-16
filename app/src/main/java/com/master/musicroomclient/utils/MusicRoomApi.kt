@@ -1,11 +1,9 @@
 package com.master.musicroomclient.utils
 
+import com.master.musicroomclient.model.Listener
 import com.master.musicroomclient.model.Room
 import retrofit2.Call
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.Path
+import retrofit2.http.*
 
 interface MusicRoomApi {
 
@@ -14,4 +12,11 @@ interface MusicRoomApi {
 
     @POST(value = ".")
     fun createRoom(@Body room: Room): Call<Room>
+
+    @PUT(value = "{code}/connect")
+    fun connectListener(@Path("code") code: String, @Body listener: Listener): Call<Room>
+
+    @PUT(value = "{code}/disconnect")
+    fun disconnectListener(@Path("code") code: String, @Body listener: Listener): Call<Room>
+
 }

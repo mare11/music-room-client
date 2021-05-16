@@ -35,7 +35,7 @@
 
     <RelativeLayout
         android:id="@+id/media_player"
-        app:layout_constraintBottom_toTopOf="@+id/message_view"
+        app:layout_constraintBottom_toTopOf="@+id/view_pager"
         app:layout_constraintTop_toBottomOf="@+id/room_header_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -48,79 +48,20 @@
 
     </RelativeLayout>
 
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/message_view"
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/view_pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         app:layout_constrainedHeight="true"
-        app:layout_constraintBottom_toTopOf="@+id/space_view"
         app:layout_constraintTop_toBottomOf="@+id/media_player"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        app:layout_constraintBottom_toBottomOf="parent">
 
-    <View
-        android:id="@+id/space_view"
-        app:layout_constraintTop_toBottomOf="@+id/message_view"
-        app:layout_constraintBottom_toTopOf="@+id/send_message_layout"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="?android:attr/listDivider" />
-
-    <!--    <TextView-->
-    <!--        android:id="@+id/text_gchat_indicator"-->
-    <!--        app:layout_constraintBottom_toTopOf="@id/view"-->
-    <!--        app:layout_constraintStart_toStartOf="parent"-->
-    <!--        android:layout_width="wrap_content"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:layout_marginStart="16dp"-->
-    <!--        android:visibility="gone" />-->
-
-    <!--    <View-->
-    <!--        android:id="@+id/view"-->
-    <!--        app:layout_constraintBottom_toTopOf="@+id/send_message_layout"-->
-    <!--        android:layout_width="match_parent"-->
-    <!--        android:layout_height="1dp"-->
-    <!--        android:background="#e0e0e0" />-->
-
-    <RelativeLayout
-        android:id="@+id/send_message_layout"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-
-        <EditText
-            android:id="@+id/send_message_text"
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tab_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="16dp"
-            android:layout_toStartOf="@+id/send_message_button"
-            android:background="@android:color/transparent"
-            android:hint="Enter Message"
-            android:inputType="text"
-            android:maxLines="6"
-            tools:ignore="Autofill" />
+            android:background="@color/design_default_color_primary" />
 
-
-        <!--        <ImageButton-->
-        <!--            android:id="@+id/send_message_button"-->
-        <!--            android:layout_width="64dp"-->
-        <!--            android:layout_height="48dp"-->
-        <!--            android:layout_alignParentEnd="true"-->
-        <!--            android:src="@android:drawable/ic_menu_send"-->
-        <!--            android:background="?attr/selectableItemBackground"-->
-        <!--            android:textColor="@color/design_default_color_primary" />-->
-
-
-        <Button
-            android:id="@+id/send_message_button"
-            android:layout_width="64dp"
-            android:layout_height="48dp"
-            android:layout_alignParentEnd="true"
-            android:background="@android:drawable/ic_menu_send"
-            android:textColor="@color/design_default_color_primary" />
-
-    </RelativeLayout>
+    </androidx.viewpager.widget.ViewPager>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

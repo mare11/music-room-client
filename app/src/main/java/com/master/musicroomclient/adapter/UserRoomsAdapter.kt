@@ -5,11 +5,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.master.musicroomclient.R
 
 
-class UserRoomsAdapter(private val listener: OnItemClickListener, private val roomList: List<String>) : RecyclerView.Adapter<ViewHolder>() {
+class UserRoomsAdapter(
+        private val listener: OnItemClickListener,
+        private val roomList: List<String>
+) : RecyclerView.Adapter<UserRoomsAdapter.ViewHolder>() {
 
     interface OnItemClickListener {
         fun onItemClick(position: Int)
@@ -18,12 +20,12 @@ class UserRoomsAdapter(private val listener: OnItemClickListener, private val ro
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.user_room_item_layout, parent, false)
-        return UserRoomHolder(view, listener)
+        return ViewHolder(view, listener)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val room = roomList[position]
-        (holder as UserRoomHolder).bind(room)
+        holder.userRoomCodeText.text = room
     }
 
     override fun getItemCount(): Int {
@@ -34,17 +36,13 @@ class UserRoomsAdapter(private val listener: OnItemClickListener, private val ro
         return roomList
     }
 
-    private class UserRoomHolder(itemView: View, onItemClickListener: OnItemClickListener) : ViewHolder(itemView) {
-        val userRoomCodeText: TextView = itemView.findViewById(R.id.user_room_name)
+    class ViewHolder(view: View, onItemClickListener: OnItemClickListener) : RecyclerView.ViewHolder(view) {
+        val userRoomCodeText: TextView = view.findViewById(R.id.user_room_name)
 
         init {
-            itemView.setOnClickListener {
-                onItemClickListener.onItemClick(adapterPosition)
+            view.setOnClickListener {
+                onItemClickListener.onItemClick(bindingAdapterPosition)
             }
-        }
-
-        fun bind(room: String) {
-            userRoomCodeText.text = room
         }
     }
 
