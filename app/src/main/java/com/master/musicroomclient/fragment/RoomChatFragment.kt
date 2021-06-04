@@ -15,6 +15,7 @@ import com.google.gson.GsonBuilder
 import com.master.musicroomclient.R
 import com.master.musicroomclient.adapter.MessageListAdapter
 import com.master.musicroomclient.model.Message
+import com.master.musicroomclient.utils.Constants
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import ua.naiksoftware.stomp.Stomp
@@ -32,7 +33,10 @@ class RoomChatFragment(private val roomCode: String, private val userName: Strin
     private val messageListAdapter = MessageListAdapter(this.userName)
 
     private val stompClient: StompClient =
-        Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://192.168.0.16:8008/music-rooms")
+        Stomp.over(
+            Stomp.ConnectionProvider.OKHTTP,
+            "ws://${Constants.SERVER_HOST}:8008/music-rooms"
+        )
     private val compositeDisposable: CompositeDisposable = CompositeDisposable()
     private val gson = GsonBuilder().create()
 
@@ -57,7 +61,7 @@ class RoomChatFragment(private val roomCode: String, private val userName: Strin
             if (messageText.isNotBlank()) {
                 val sentMessage = Message(messageText, this.userName, Instant.now().toString())
                 val sendMessageDisposable =
-                    stompClient.send("/app/room/${this.roomCode}", gson.toJson(sentMessage))
+                    stompClient.send("/app/room/${this.roomCode}/chat", gson.toJson(sentMessage))
                         .subscribe({
                             sendMessageText.text.clear()
                         }, {
@@ -102,7 +106,7 @@ class RoomChatFragment(private val roomCode: String, private val userName: Strin
             }
         compositeDisposable.add(lifecycleDisposable)
 
-        val topicDisposable: Disposable = stompClient.topic("/topic/room/${this.roomCode}")
+        val topicDisposable: Disposable = stompClient.topic("/topic/room/${this.roomCode}/chat")
             .subscribe { topicMessage: StompMessage ->
                 val receivedMessage = gson.fromJson(topicMessage.payload, Message::class.java)
                 requireActivity().runOnUiThread { // FIXME

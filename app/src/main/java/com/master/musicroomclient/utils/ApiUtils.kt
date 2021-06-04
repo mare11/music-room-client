@@ -8,7 +8,7 @@ import java.util.concurrent.Executors
 
 object ApiUtils {
 
-    private const val BASE_URL = "http://192.168.0.16:8008/api/rooms/"
+    private const val BASE_URL = "http://${Constants.SERVER_HOST}:8008/api/rooms/"
 
     private val retrofit: Retrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)

@@ -34,17 +34,11 @@
 
 
     <RelativeLayout
-        android:id="@+id/media_player"
+        android:id="@+id/music_player_container"
         app:layout_constraintBottom_toTopOf="@+id/view_pager"
         app:layout_constraintTop_toBottomOf="@+id/room_header_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-
-        <SeekBar
-            android:id="@+id/player_seek_bar"
-            android:minHeight="100dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
 
     </RelativeLayout>
 
@@ -53,7 +47,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constrainedHeight="true"
-        app:layout_constraintTop_toBottomOf="@+id/media_player"
+        app:layout_constraintTop_toBottomOf="@+id/music_player_container"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <com.google.android.material.tabs.TabLayout
