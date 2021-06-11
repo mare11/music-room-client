@@ -12,12 +12,14 @@ import com.master.musicroomclient.activity.RoomActivity
 import com.master.musicroomclient.adapter.UserRoomsAdapter
 import com.master.musicroomclient.dialog.CreateRoomDialogFragment
 import com.master.musicroomclient.dialog.CreateRoomDialogFragment.CreateRoomDialogListener
+import com.master.musicroomclient.utils.ApiUtils
 import com.master.musicroomclient.utils.Constants.ROOM_CODE_EXTRA
 import com.master.musicroomclient.utils.Constants.ROOM_REQUEST_CODE
 import com.master.musicroomclient.utils.Constants.USER_ROOMS_PREFERENCE_KEY
 import com.master.musicroomclient.utils.SnackBarUtils.showSnackBar
 
-class MainActivity : AppCompatActivity(), CreateRoomDialogListener, UserRoomsAdapter.OnItemClickListener {
+class MainActivity : AppCompatActivity(), CreateRoomDialogListener,
+    UserRoomsAdapter.OnItemClickListener {
 
     private lateinit var userRoomsAdapter: UserRoomsAdapter
 
@@ -47,7 +49,7 @@ class MainActivity : AppCompatActivity(), CreateRoomDialogListener, UserRoomsAda
 
         val defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
         val userRooms =
-                defaultSharedPreferences.getStringSet(USER_ROOMS_PREFERENCE_KEY, HashSet<String>())
+            defaultSharedPreferences.getStringSet(USER_ROOMS_PREFERENCE_KEY, HashSet<String>())
         val userRoomsView = findViewById<RecyclerView>(R.id.user_rooms_view)
         userRoomsView.layoutManager = LinearLayoutManager(this)
         if (userRooms != null) {
@@ -76,6 +78,16 @@ class MainActivity : AppCompatActivity(), CreateRoomDialogListener, UserRoomsAda
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == ROOM_REQUEST_CODE && resultCode != RESULT_OK) {
             showSnackBar(findViewById(android.R.id.content), "Error")
+        }
+    }
+
+    // TODO: check can this be done on some application shutdown event
+    override fun onDestroy() {
+        super.onDestroy()
+        with(ApiUtils.stompClientDelegate) {
+            if (isInitialized()) {
+                value.disconnect()
+            }
         }
     }
 }

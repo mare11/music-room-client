@@ -1,26 +1,21 @@
 package com.master.musicroomclient.fragment
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.gson.GsonBuilder
 import com.master.musicroomclient.R
 import com.master.musicroomclient.adapter.MessageListAdapter
 import com.master.musicroomclient.model.Message
-import com.master.musicroomclient.utils.Constants
+import com.master.musicroomclient.utils.ApiUtils.gson
+import com.master.musicroomclient.utils.ApiUtils.musicRoomStompClient
+import com.master.musicroomclient.utils.SnackBarUtils
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.disposables.Disposable
-import ua.naiksoftware.stomp.Stomp
-import ua.naiksoftware.stomp.StompClient
-import ua.naiksoftware.stomp.dto.LifecycleEvent
 import ua.naiksoftware.stomp.dto.StompMessage
 import java.time.Instant
 
@@ -32,14 +27,7 @@ class RoomChatFragment(private val roomCode: String, private val userName: Strin
     private lateinit var messageView: RecyclerView
     private val messageListAdapter = MessageListAdapter(this.userName)
 
-    private val stompClient: StompClient =
-        Stomp.over(
-            Stomp.ConnectionProvider.OKHTTP,
-            "ws://${Constants.SERVER_HOST}:8008/music-rooms"
-        )
     private val compositeDisposable: CompositeDisposable = CompositeDisposable()
-    private val gson = GsonBuilder().create()
-
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -60,53 +48,26 @@ class RoomChatFragment(private val roomCode: String, private val userName: Strin
             val messageText = sendMessageText.text.toString()
             if (messageText.isNotBlank()) {
                 val sentMessage = Message(messageText, this.userName, Instant.now().toString())
-                val sendMessageDisposable =
-                    stompClient.send("/app/room/${this.roomCode}/chat", gson.toJson(sentMessage))
-                        .subscribe({
-                            sendMessageText.text.clear()
-                        }, {
-                            Toast.makeText(
-                                activity,
-                                "Error sending message",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        })
+                val sendMessageDisposable = musicRoomStompClient.send(
+                    "/app/room/${this.roomCode}/chat",
+                    gson.toJson(sentMessage)
+                ).subscribe({ sendMessageText.text.clear() },
+                    {
+                        SnackBarUtils.showSnackBar(
+                            requireView().findViewById(android.R.id.content),
+                            "Error sending message"
+                        )
+                    })
                 compositeDisposable.add(sendMessageDisposable)
             }
         }
-        connectToWebSocket()
+        connectToChatTopic()
 
         return view
     }
 
-    private fun connectToWebSocket() {
-        stompClient.connect()
-        val lifecycleDisposable: Disposable =
-            stompClient.lifecycle().subscribe { lifecycleEvent: LifecycleEvent ->
-                when (lifecycleEvent.type) {
-                    LifecycleEvent.Type.OPENED -> {
-                        Log.i("Lifecycle event", "Stomp connection opened")
-                        Log.i("Lifecycle event", "Message received: " + lifecycleEvent.message)
-                    }
-                    LifecycleEvent.Type.ERROR -> Log.e(
-                        "Lifecycle event",
-                        "Error",
-                        lifecycleEvent.exception
-                    )
-                    LifecycleEvent.Type.CLOSED -> Log.i(
-                        "Lifecycle event",
-                        "Stomp connection closed"
-                    )
-                    LifecycleEvent.Type.FAILED_SERVER_HEARTBEAT -> Log.w(
-                        "Lifecycle event",
-                        "Stomp connection failed heartbeat"
-                    )
-                    else -> Log.e("Lifecycle event", "Error!")
-                }
-            }
-        compositeDisposable.add(lifecycleDisposable)
-
-        val topicDisposable: Disposable = stompClient.topic("/topic/room/${this.roomCode}/chat")
+    private fun connectToChatTopic() {
+        val topicDisposable = musicRoomStompClient.topic("/topic/room/${this.roomCode}/chat")
             .subscribe { topicMessage: StompMessage ->
                 val receivedMessage = gson.fromJson(topicMessage.payload, Message::class.java)
                 requireActivity().runOnUiThread { // FIXME
@@ -117,7 +78,6 @@ class RoomChatFragment(private val roomCode: String, private val userName: Strin
     }
 
     override fun onDestroy() {
-        stompClient.disconnect()
         compositeDisposable.dispose()
         super.onDestroy()
     }

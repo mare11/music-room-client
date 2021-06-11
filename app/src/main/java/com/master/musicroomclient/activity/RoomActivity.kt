@@ -112,7 +112,7 @@ class RoomActivity : AppCompatActivity(), JoinRoomDialogListener {
 
                     supportFragmentManager.beginTransaction().replace(
                         R.id.music_player_container,
-                        RoomPlayerFragment.newInstance()
+                        RoomPlayerFragment.newInstance(room.code!!) // FIXME
                     ).commit()
 
                     val tabAdapter = TabAdapter(
