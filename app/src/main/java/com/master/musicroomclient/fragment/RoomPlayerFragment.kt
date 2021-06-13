@@ -27,6 +27,7 @@ import com.master.musicroomclient.utils.ApiUtils.musicRoomStompClient
 import com.master.musicroomclient.utils.Constants
 import com.master.musicroomclient.utils.Constants.SERVER_HOST
 import com.master.musicroomclient.utils.Constants.SERVER_STREAM_PORT
+import com.master.musicroomclient.utils.Constants.formatDuration
 import com.master.musicroomclient.utils.SnackBarUtils
 import io.reactivex.disposables.CompositeDisposable
 import okhttp3.MediaType
@@ -39,10 +40,9 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import ua.naiksoftware.stomp.dto.StompMessage
-import java.time.Duration
 
 
-class RoomPlayerFragment(private val roomCode: String) : Fragment()
+class RoomPlayerFragment : Fragment()
 //    , MediaPlayer.EventListener
 {
 
@@ -54,6 +54,7 @@ class RoomPlayerFragment(private val roomCode: String) : Fragment()
         })
     }
 
+    private lateinit var roomCode: String
     private val mediaPlayer by lazy { MediaPlayer(libVLC) }
     private val handler by lazy { Handler(Looper.getMainLooper()) }
     private lateinit var songNameText: TextView
@@ -73,6 +74,15 @@ class RoomPlayerFragment(private val roomCode: String) : Fragment()
     ): View? {
 
         val view = inflater.inflate(R.layout.fragment_room_player, container, false)
+
+        arguments?.let { bundle ->
+            bundle.getString(ARG_ROOM_CODE)?.also { roomCode = it }
+        }
+
+        if (!this::roomCode.isInitialized) {
+            // TODO: show some error message
+            return view
+        }
 
         songNameText = view.findViewById(R.id.song_name_text)
         songCurrentTimeText = view.findViewById(R.id.song_current_time_text)
@@ -135,11 +145,6 @@ class RoomPlayerFragment(private val roomCode: String) : Fragment()
         if (requestCode == Constants.FILE_REQUEST_CODE && resultCode == AppCompatActivity.RESULT_OK) {
             data?.data?.let { uri -> uploadFile(uri) }
         }
-    }
-
-    companion object {
-        @JvmStatic
-        fun newInstance(roomCode: String) = RoomPlayerFragment(roomCode)
     }
 
     private fun initPlayer() {
@@ -249,10 +254,15 @@ class RoomPlayerFragment(private val roomCode: String) : Fragment()
         return fileName
     }
 
-    private fun formatDuration(millisecondsDuration: Long): String {
-        val duration = Duration.ofMillis(millisecondsDuration)
-        val minutes = duration.toMinutes()
-        val seconds = duration.minusMinutes(minutes).seconds
-        return "$minutes:$seconds"
+    companion object {
+        private const val ARG_ROOM_CODE = "roomCode"
+
+        @JvmStatic
+        fun newInstance(roomCode: String) =
+            RoomPlayerFragment().apply {
+                arguments = Bundle().apply {
+                    putString(ARG_ROOM_CODE, roomCode)
+                }
+            }
     }
 }

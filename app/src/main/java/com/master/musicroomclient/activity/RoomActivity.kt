@@ -70,7 +70,7 @@ class RoomActivity : AppCompatActivity(), JoinRoomDialogListener {
         if (this::userName.isInitialized) {
             val listener = Listener(this.userName)
             val roomCall =
-                ApiUtils.musicRoomApi.disconnectListener(this.room.code!!, listener) // FIXME
+                ApiUtils.musicRoomApi.disconnectListener(this.room.code, listener)
             roomCall.enqueue(object : Callback<Room> {
                 override fun onResponse(call: Call<Room>, response: Response<Room>) {
                     Log.i("ON DESTROZ", "SUCCESS!!")
@@ -103,7 +103,7 @@ class RoomActivity : AppCompatActivity(), JoinRoomDialogListener {
         this.userName = name
 
         val listener = Listener(this.userName)
-        val roomCall = ApiUtils.musicRoomApi.connectListener(this.room.code!!, listener) // FIXME
+        val roomCall = ApiUtils.musicRoomApi.connectListener(this.room.code, listener)
         roomCall.enqueue(object : Callback<Room> {
             override fun onResponse(call: Call<Room>, response: Response<Room>) {
                 val room = response.body()
@@ -112,14 +112,14 @@ class RoomActivity : AppCompatActivity(), JoinRoomDialogListener {
 
                     supportFragmentManager.beginTransaction().replace(
                         R.id.music_player_container,
-                        RoomPlayerFragment.newInstance(room.code!!) // FIXME
+                        RoomPlayerFragment.newInstance(room.code)
                     ).commit()
 
                     val tabAdapter = TabAdapter(
-                        this@RoomActivity,
-                        this@RoomActivity.supportFragmentManager,
                         this@RoomActivity.room,
-                        this@RoomActivity.userName
+                        this@RoomActivity.userName,
+                        this@RoomActivity,
+                        this@RoomActivity.supportFragmentManager
                     )
                     val viewPager = findViewById<ViewPager>(R.id.view_pager)
                     val tabLayout = findViewById<TabLayout>(R.id.tab_layout)

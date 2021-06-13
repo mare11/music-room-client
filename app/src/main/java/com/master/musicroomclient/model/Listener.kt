@@ -1,6 +1,10 @@
 package com.master.musicroomclient.model
 
-data class Listener(val name: String, val connectedAt: String?) {
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
+data class Listener(val name: String, val connectedAt: String?) : Parcelable {
 
     constructor(name: String) : this(name, null)
 }

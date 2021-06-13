@@ -11,34 +11,27 @@ import com.master.musicroomclient.R
 import com.master.musicroomclient.adapter.ListenerListAdapter
 import com.master.musicroomclient.model.Listener
 
-/**
- * A fragment representing a list of Items.
- */
-class RoomListenersFragment(private val listeners: List<Listener>) : Fragment() {
+class RoomListenersFragment : Fragment() {
+
+    private lateinit var listeners: List<Listener>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-//        arguments?.let {
-//            columnCount = it.getInt(ARG_COLUMN_COUNT)
-//        }
+        arguments?.let { bundle ->
+            bundle.getParcelableArrayList<Listener>(ARG_LISTENERS)?.also { listeners = it }
+        }
     }
 
     override fun onCreateView(
-            inflater: LayoutInflater, container: ViewGroup?,
-            savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_room_listeners, container, false)
 
-        // Set the adapter
-        if (view is RecyclerView) {
+        if (view is RecyclerView && this::listeners.isInitialized) {
             with(view) {
-//                layoutManager = when {
-//                    columnCount <= 1 -> LinearLayoutManager(context)
-//                    else -> GridLayoutManager(context, columnCount)
-//                }
                 layoutManager = LinearLayoutManager(context)
-//                adapter = MyItemRecyclerViewAdapter(DummyContent.ITEMS)
                 adapter = ListenerListAdapter(listeners)
             }
         }
@@ -46,18 +39,14 @@ class RoomListenersFragment(private val listeners: List<Listener>) : Fragment() 
     }
 
     companion object {
+        private const val ARG_LISTENERS = "listeners"
 
-        // TODO: Customize parameter argument names
-        const val ARG_COLUMN_COUNT = "column-count"
-
-        // TODO: Customize parameter initialization
         @JvmStatic
         fun newInstance(listeners: List<Listener>) =
-//            RoomListenersFragment().apply {
-//                arguments = Bundle().apply {
-//                    putInt(ARG_COLUMN_COUNT, columnCount)
-//                }
-//            }
-                RoomListenersFragment(listeners)
+            RoomListenersFragment().apply {
+                arguments = Bundle().apply {
+                    putParcelableArrayList(ARG_LISTENERS, ArrayList(listeners))
+                }
+            }
     }
 }

@@ -9,6 +9,7 @@ import android.widget.EditText
 import androidx.fragment.app.DialogFragment
 import com.master.musicroomclient.R
 import com.master.musicroomclient.model.Room
+import com.master.musicroomclient.model.RoomRequest
 import com.master.musicroomclient.utils.ApiUtils
 import com.master.musicroomclient.utils.SnackBarUtils.showSnackBar
 import retrofit2.Call
@@ -16,7 +17,8 @@ import retrofit2.Callback
 import retrofit2.Response
 
 
-class CreateRoomDialogFragment(private val dialogListener: CreateRoomDialogListener) : DialogFragment() {
+class CreateRoomDialogFragment(private val dialogListener: CreateRoomDialogListener) :
+    DialogFragment() {
 
     interface CreateRoomDialogListener {
         fun onDialogPositiveClose(code: String)
@@ -26,16 +28,17 @@ class CreateRoomDialogFragment(private val dialogListener: CreateRoomDialogListe
 
         return activity?.let { activity ->
             val dialog = AlertDialog.Builder(activity)
-                    .setView(R.layout.create_room_dialog_layout)
-                    .setPositiveButton("OK", null)
-                    .setNegativeButton("Cancel", null)
-                    .create()
+                .setView(R.layout.create_room_dialog_layout)
+                .setPositiveButton("OK", null)
+                .setNegativeButton("Cancel", null)
+                .create()
             dialog.setOnShowListener {
                 val roomNameInput = dialog.findViewById<EditText>(R.id.create_room_name_text)
                 // focus the field and show the keyboard
                 roomNameInput.requestFocus()
                 roomNameInput.postDelayed({
-                    val inputManager = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    val inputManager =
+                        activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                     inputManager.showSoftInput(roomNameInput, InputMethodManager.SHOW_IMPLICIT)
                 }, 100)
 
@@ -43,7 +46,7 @@ class CreateRoomDialogFragment(private val dialogListener: CreateRoomDialogListe
                 positiveButton.setOnClickListener {
                     val roomName = roomNameInput.text.toString().trim()
                     if (roomName.isNotBlank()) {
-                        val newRoom = Room(roomName)
+                        val newRoom = RoomRequest(roomName)
                         val createRoomCall = ApiUtils.musicRoomApi.createRoom(newRoom)
 
                         createRoomCall.enqueue(object : Callback<Room> {
@@ -51,9 +54,12 @@ class CreateRoomDialogFragment(private val dialogListener: CreateRoomDialogListe
                                 val room = response.body()
                                 if (response.isSuccessful && room != null) {
                                     dialog.dismiss()
-                                    dialogListener.onDialogPositiveClose(room.code!!) // FIXME
+                                    dialogListener.onDialogPositiveClose(room.code)
                                 } else {
-                                    showSnackBar(dialog.findViewById(android.R.id.content), "Error!")
+                                    showSnackBar(
+                                        dialog.findViewById(android.R.id.content),
+                                        "Error!"
+                                    )
                                 }
                             }
 

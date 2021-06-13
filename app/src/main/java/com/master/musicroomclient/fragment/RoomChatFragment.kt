@@ -19,13 +19,12 @@ import io.reactivex.disposables.CompositeDisposable
 import ua.naiksoftware.stomp.dto.StompMessage
 import java.time.Instant
 
-/**
- * A fragment representing a list of Items.
- */
-class RoomChatFragment(private val roomCode: String, private val userName: String) : Fragment() {
+class RoomChatFragment : Fragment() {
 
+    private lateinit var roomCode: String
+    private lateinit var userName: String
     private lateinit var messageView: RecyclerView
-    private val messageListAdapter = MessageListAdapter(this.userName)
+    private lateinit var messageListAdapter: MessageListAdapter
 
     private val compositeDisposable: CompositeDisposable = CompositeDisposable()
 
@@ -36,10 +35,21 @@ class RoomChatFragment(private val roomCode: String, private val userName: Strin
     ): View? {
         val view = inflater.inflate(R.layout.fragment_chat, container, false)
 
-        messageView = view.findViewById(R.id.message_view)
+        arguments?.let { bundle ->
+            bundle.getString(ARG_ROOM_CODE)?.also { roomCode = it }
+            bundle.getString(ARG_USER_NAME)?.also { userName = it }
+        }
+
+        if (!this::roomCode.isInitialized || !this::userName.isInitialized) {
+            // TODO: show some error message
+            return view
+        }
+
         val linearLayoutManager = LinearLayoutManager(activity)
         linearLayoutManager.stackFromEnd = true
+        messageView = view.findViewById(R.id.message_view)
         messageView.layoutManager = linearLayoutManager
+        this.messageListAdapter = MessageListAdapter(this.userName)
         messageView.adapter = messageListAdapter
 
         val sendMessageText = view.findViewById<EditText>(R.id.send_message_text)
@@ -70,7 +80,7 @@ class RoomChatFragment(private val roomCode: String, private val userName: Strin
         val topicDisposable = musicRoomStompClient.topic("/topic/room/${this.roomCode}/chat")
             .subscribe { topicMessage: StompMessage ->
                 val receivedMessage = gson.fromJson(topicMessage.payload, Message::class.java)
-                requireActivity().runOnUiThread { // FIXME
+                requireActivity().runOnUiThread {
                     messageListAdapter.addMessage(receivedMessage)
                 }
             }
@@ -83,18 +93,16 @@ class RoomChatFragment(private val roomCode: String, private val userName: Strin
     }
 
     companion object {
+        private const val ARG_ROOM_CODE = "roomCode"
+        private const val ARG_USER_NAME = "userName"
 
-        // TODO: Customize parameter argument names
-        const val ARG_COLUMN_COUNT = "column-count"
-
-        // TODO: Customize parameter initialization
         @JvmStatic
         fun newInstance(roomCode: String, userName: String) =
-//            ChatFragment(userName).apply {
-//                arguments = Bundle().apply {
-//                    putInt(ARG_COLUMN_COUNT, columnCount)
-//                }
-//            }
-            RoomChatFragment(roomCode, userName)
+            RoomChatFragment().apply {
+                arguments = Bundle().apply {
+                    putString(ARG_ROOM_CODE, roomCode)
+                    putString(ARG_USER_NAME, userName)
+                }
+            }
     }
 }

@@ -10,7 +10,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import ua.naiksoftware.stomp.Stomp
 import ua.naiksoftware.stomp.StompClient
-import java.util.concurrent.Executors
 
 object ApiUtils {
 
@@ -21,8 +20,6 @@ object ApiUtils {
         .baseUrl(HTTP_BASE_URL)
         .addConverterFactory(GsonConverterFactory.create())
         .client(initializeOkHttpClient())
-        // TODO: check
-        .callbackExecutor(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()))
         .build()
 
     private fun initializeOkHttpClient(): OkHttpClient {

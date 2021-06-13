@@ -1,5 +1,7 @@
 package com.master.musicroomclient.utils
 
+import java.time.Duration
+
 object Constants {
 
     const val SERVER_HOST = "192.168.1.8"
@@ -16,4 +18,10 @@ object Constants {
     const val DEFAULT_FILE_NAME = "Unknown title"
     const val DEFAULT_FILE_DURATION = 0L
 
+    fun formatDuration(millisecondsDuration: Long): String {
+        val duration = Duration.ofMillis(millisecondsDuration)
+        val minutes = duration.toMinutes()
+        val seconds = duration.minusMinutes(minutes).seconds
+        return "$minutes:$seconds"
+    }
 }
