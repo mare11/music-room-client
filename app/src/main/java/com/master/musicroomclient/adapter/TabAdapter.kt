@@ -9,10 +9,10 @@ import com.master.musicroomclient.R
 import com.master.musicroomclient.fragment.RoomChatFragment
 import com.master.musicroomclient.fragment.RoomListenersFragment
 import com.master.musicroomclient.fragment.RoomPlaylistFragment
-import com.master.musicroomclient.model.Room
+import com.master.musicroomclient.model.RoomDetails
 
 class TabAdapter(
-    private val room: Room,
+    private val roomDetails: RoomDetails,
     private val userName: String,
     private val context: Context,
     fm: FragmentManager
@@ -20,9 +20,9 @@ class TabAdapter(
 
     override fun getItem(position: Int): Fragment {
         return when (position) {
-            2 -> RoomListenersFragment.newInstance(room.listeners)
-            1 -> RoomPlaylistFragment.newInstance(room.playlist)
-            else -> RoomChatFragment.newInstance(room.code, userName)
+            2 -> RoomListenersFragment.newInstance(roomDetails.listeners)
+            1 -> RoomPlaylistFragment.newInstance(roomDetails.playlist)
+            else -> RoomChatFragment.newInstance(roomDetails.code, userName)
         }
     }
 

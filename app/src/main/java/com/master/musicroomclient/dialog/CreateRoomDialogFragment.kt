@@ -21,7 +21,7 @@ class CreateRoomDialogFragment(private val dialogListener: CreateRoomDialogListe
     DialogFragment() {
 
     interface CreateRoomDialogListener {
-        fun onDialogPositiveClose(code: String)
+        fun onCreateRoomDialogPositiveClose(room: Room)
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -54,7 +54,7 @@ class CreateRoomDialogFragment(private val dialogListener: CreateRoomDialogListe
                                 val room = response.body()
                                 if (response.isSuccessful && room != null) {
                                     dialog.dismiss()
-                                    dialogListener.onDialogPositiveClose(room.code)
+                                    dialogListener.onCreateRoomDialogPositiveClose(room)
                                 } else {
                                     showSnackBar(
                                         dialog.findViewById(android.R.id.content),

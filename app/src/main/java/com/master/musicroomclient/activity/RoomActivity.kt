@@ -6,77 +6,71 @@ import android.os.Looper
 import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.preference.PreferenceManager
 import androidx.viewpager.widget.ViewPager
 import com.google.android.material.tabs.TabLayout
 import com.master.musicroomclient.R
 import com.master.musicroomclient.adapter.TabAdapter
-import com.master.musicroomclient.dialog.JoinRoomDialogFragment
-import com.master.musicroomclient.dialog.JoinRoomDialogFragment.JoinRoomDialogListener
 import com.master.musicroomclient.fragment.RoomPlayerFragment
 import com.master.musicroomclient.model.Listener
-import com.master.musicroomclient.model.Room
-import com.master.musicroomclient.utils.ApiUtils
-import com.master.musicroomclient.utils.Constants.ROOM_CODE_EXTRA
-import com.master.musicroomclient.utils.Constants.USER_NAME_PREFERENCE_KEY
-import com.master.musicroomclient.utils.Constants.USER_ROOMS_PREFERENCE_KEY
+import com.master.musicroomclient.model.RoomDetails
+import com.master.musicroomclient.utils.ApiUtils.musicRoomApi
+import com.master.musicroomclient.utils.Constants.ROOM_EXTRA
+import com.master.musicroomclient.utils.Constants.USER_NAME_EXTRA
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.net.HttpURLConnection
 
 
-class RoomActivity : AppCompatActivity(), JoinRoomDialogListener {
+class RoomActivity : AppCompatActivity() {
 
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var userName: String
-    private lateinit var room: Room
+    private lateinit var roomDetails: RoomDetails
     private var doubleBackToExitPressedOnce = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_room)
 
-        val roomName = findViewById<TextView>(R.id.room_name)
-        val roomCode = intent.getStringExtra(ROOM_CODE_EXTRA)
-            ?: // TODO: show popup and handle this correctly
-            throw RuntimeException("null room code!")
+        intent.getStringExtra(USER_NAME_EXTRA)?.also { userName = it }
+        intent.getParcelableExtra<RoomDetails>(ROOM_EXTRA)?.also { roomDetails = it }
 
-        val roomCall = ApiUtils.musicRoomApi.getRoomByCode(roomCode)
-        roomCall.enqueue(object : Callback<Room> {
-            override fun onResponse(call: Call<Room>, response: Response<Room>) {
-                val room = response.body()
-                if (response.isSuccessful && room != null) {
-                    this@RoomActivity.room = room
-                    roomName.text = room.name
+        if (this::userName.isInitialized && this::roomDetails.isInitialized) {
+            val roomName = findViewById<TextView>(R.id.room_name_header)
+            roomName.text = roomDetails.name
 
-                    val roomNameDialogFragment = JoinRoomDialogFragment(this@RoomActivity)
-                    roomNameDialogFragment.isCancelable = false
-                    roomNameDialogFragment.show(supportFragmentManager, "join_room")
-                } else {
-                    setResult(RESULT_CANCELED)
-                    finish()
-                }
-            }
+            supportFragmentManager.beginTransaction().replace(
+                R.id.music_player_container,
+                RoomPlayerFragment.newInstance(roomDetails.code)
+            ).commit()
 
-            override fun onFailure(call: Call<Room>, t: Throwable) {
-                setResult(RESULT_CANCELED)
-                finish()
-            }
-        })
+            val tabAdapter = TabAdapter(
+                this@RoomActivity.roomDetails,
+                this@RoomActivity.userName,
+                this@RoomActivity,
+                this@RoomActivity.supportFragmentManager
+            )
+            val viewPager = findViewById<ViewPager>(R.id.view_pager)
+            val tabLayout = findViewById<TabLayout>(R.id.tab_layout)
+            viewPager.adapter = tabAdapter
+            tabLayout.setupWithViewPager(viewPager)
+        } else {
+            setResult(RESULT_CANCELED)
+            finish()
+        }
     }
 
+
     override fun onDestroy() {
-        if (this::userName.isInitialized) {
+        if (this::roomDetails.isInitialized && this::userName.isInitialized) {
             val listener = Listener(this.userName)
-            val roomCall =
-                ApiUtils.musicRoomApi.disconnectListener(this.room.code, listener)
-            roomCall.enqueue(object : Callback<Room> {
-                override fun onResponse(call: Call<Room>, response: Response<Room>) {
+            val roomCall = musicRoomApi.disconnectListener(this.roomDetails.code, listener)
+            roomCall.enqueue(object : Callback<Unit> {
+                override fun onResponse(call: Call<Unit>, response: Response<Unit>) {
                     Log.i("ON DESTROZ", "SUCCESS!!")
                 }
 
-                override fun onFailure(call: Call<Room>, t: Throwable) {
+                override fun onFailure(call: Call<Unit>, t: Throwable) {
                     Log.i("ON DESTROZ", "ERROR!!")
                 }
 
@@ -96,70 +90,5 @@ class RoomActivity : AppCompatActivity(), JoinRoomDialogListener {
         handler.postDelayed({
             doubleBackToExitPressedOnce = false
         }, 2000)
-    }
-
-    override fun onDialogPositiveClose(name: String) {
-        Toast.makeText(this, "Name from dialog: $name", Toast.LENGTH_SHORT).show()
-        this.userName = name
-
-        val listener = Listener(this.userName)
-        val roomCall = ApiUtils.musicRoomApi.connectListener(this.room.code, listener)
-        roomCall.enqueue(object : Callback<Room> {
-            override fun onResponse(call: Call<Room>, response: Response<Room>) {
-                val room = response.body()
-                if (response.isSuccessful && room != null) {
-                    this@RoomActivity.room = room
-
-                    supportFragmentManager.beginTransaction().replace(
-                        R.id.music_player_container,
-                        RoomPlayerFragment.newInstance(room.code)
-                    ).commit()
-
-                    val tabAdapter = TabAdapter(
-                        this@RoomActivity.room,
-                        this@RoomActivity.userName,
-                        this@RoomActivity,
-                        this@RoomActivity.supportFragmentManager
-                    )
-                    val viewPager = findViewById<ViewPager>(R.id.view_pager)
-                    val tabLayout = findViewById<TabLayout>(R.id.tab_layout)
-                    runOnUiThread {
-                        viewPager.adapter = tabAdapter
-                        tabLayout.setupWithViewPager(viewPager)
-                    }
-
-                    val defaultSharedPreferences =
-                        PreferenceManager.getDefaultSharedPreferences(this@RoomActivity)
-                    val userRooms = HashSet(
-                        defaultSharedPreferences.getStringSet(
-                            USER_ROOMS_PREFERENCE_KEY,
-                            HashSet<String>()
-                        )
-                    )
-                    userRooms.add(this@RoomActivity.room.code)
-                    defaultSharedPreferences.edit()
-                        .putStringSet(USER_ROOMS_PREFERENCE_KEY, userRooms).apply()
-                    defaultSharedPreferences.edit()
-                        .putString(USER_NAME_PREFERENCE_KEY, this@RoomActivity.userName).apply()
-
-                } else {
-                    val code = response.code()
-                    if (code == HttpURLConnection.HTTP_CONFLICT) {
-                        runOnUiThread {
-                            Toast.makeText(this@RoomActivity, "Name taken!", Toast.LENGTH_SHORT)
-                                .show()
-                        }
-                    } else {
-                        setResult(RESULT_CANCELED)
-                        finish()
-                    }
-                }
-            }
-
-            override fun onFailure(call: Call<Room>, t: Throwable) {
-                setResult(RESULT_CANCELED)
-                finish()
-            }
-        })
     }
 }

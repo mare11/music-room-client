@@ -28,17 +28,21 @@ class RoomChatFragment : Fragment() {
 
     private val compositeDisposable: CompositeDisposable = CompositeDisposable()
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        arguments?.let { bundle ->
+            bundle.getString(ARG_ROOM_CODE)?.also { roomCode = it }
+            bundle.getString(ARG_USER_NAME)?.also { userName = it }
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_chat, container, false)
-
-        arguments?.let { bundle ->
-            bundle.getString(ARG_ROOM_CODE)?.also { roomCode = it }
-            bundle.getString(ARG_USER_NAME)?.also { userName = it }
-        }
 
         if (!this::roomCode.isInitialized || !this::userName.isInitialized) {
             // TODO: show some error message

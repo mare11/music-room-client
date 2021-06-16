@@ -19,7 +19,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.master.musicroomclient.R
-import com.master.musicroomclient.model.Room
+import com.master.musicroomclient.model.RoomDetails
 import com.master.musicroomclient.model.Song
 import com.master.musicroomclient.utils.ApiUtils
 import com.master.musicroomclient.utils.ApiUtils.gson
@@ -27,7 +27,7 @@ import com.master.musicroomclient.utils.ApiUtils.musicRoomStompClient
 import com.master.musicroomclient.utils.Constants
 import com.master.musicroomclient.utils.Constants.SERVER_HOST
 import com.master.musicroomclient.utils.Constants.SERVER_STREAM_PORT
-import com.master.musicroomclient.utils.Constants.formatDuration
+import com.master.musicroomclient.utils.Constants.formatDurationToMinutesAndSeconds
 import com.master.musicroomclient.utils.SnackBarUtils
 import io.reactivex.disposables.CompositeDisposable
 import okhttp3.MediaType
@@ -65,7 +65,15 @@ class RoomPlayerFragment : Fragment()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        initPlayer()
+
+        arguments?.let { bundle ->
+            bundle.getString(ARG_ROOM_CODE)?.also {
+                roomCode = it
+                initPlayer()
+                connectToStreamTopic()
+            }
+        }
+
     }
 
     override fun onCreateView(
@@ -74,10 +82,6 @@ class RoomPlayerFragment : Fragment()
     ): View? {
 
         val view = inflater.inflate(R.layout.fragment_room_player, container, false)
-
-        arguments?.let { bundle ->
-            bundle.getString(ARG_ROOM_CODE)?.also { roomCode = it }
-        }
 
         if (!this::roomCode.isInitialized) {
             // TODO: show some error message
@@ -97,7 +101,6 @@ class RoomPlayerFragment : Fragment()
             getFileIntent.type = "audio/*"
             startActivityForResult(getFileIntent, Constants.FILE_REQUEST_CODE)
         }
-        connectToStreamTopic()
 
         val playButton = view.findViewById<Button>(R.id.play_button)
         playButton.setOnClickListener {
@@ -107,23 +110,6 @@ class RoomPlayerFragment : Fragment()
         }
 
         return view
-    }
-
-    private fun connectToStreamTopic() {
-        val topicDisposable = musicRoomStompClient.topic("/topic/room/${this.roomCode}/stream")
-            .subscribe { topicMessage: StompMessage ->
-                val nextSong = gson.fromJson(topicMessage.payload, Song::class.java)
-                println("Got next song:${nextSong.name} with duration:${nextSong.duration}")
-                requireActivity().runOnUiThread {
-                    songNameText.text = nextSong.name
-                    seekBar.progress = 0
-                    seekBar.max = nextSong.duration.toInt()
-                    songCurrentTimeText.text = formatDuration(0L)
-                    songTotalTimeText.text = formatDuration(nextSong.duration)
-                }
-                handler.postDelayed(updateSongTime, 1000)
-            }
-        compositeDisposable.add(topicDisposable)
     }
 
     override fun onStop() {
@@ -158,12 +144,29 @@ class RoomPlayerFragment : Fragment()
         newWakeLock.acquire(10 * 60 * 1000L /*10 minutes*/)
     }
 
+    private fun connectToStreamTopic() {
+        val topicDisposable = musicRoomStompClient.topic("/topic/room/${this.roomCode}/stream")
+            .subscribe { topicMessage: StompMessage ->
+                val nextSong = gson.fromJson(topicMessage.payload, Song::class.java)
+                println("Got next song:${nextSong.name} with duration:${nextSong.duration}")
+                requireActivity().runOnUiThread {
+                    songNameText.text = nextSong.name
+                    seekBar.progress = 0
+                    seekBar.max = nextSong.duration.toInt()
+                    songCurrentTimeText.text = formatDurationToMinutesAndSeconds(0L)
+                    songTotalTimeText.text = formatDurationToMinutesAndSeconds(nextSong.duration)
+                }
+                handler.postDelayed(updateSongTime, 1000)
+            }
+        compositeDisposable.add(topicDisposable)
+    }
+
     private val updateSongTime: Runnable = object : Runnable {
         override fun run() {
             val currentPosition = mediaPlayer.time
             println("Current player time:$currentPosition")
             seekBar.progress = currentPosition.toInt()
-            songCurrentTimeText.text = formatDuration(currentPosition)
+            songCurrentTimeText.text = formatDurationToMinutesAndSeconds(currentPosition)
             handler.postDelayed(this, 1000)
         }
     }
@@ -195,8 +198,8 @@ class RoomPlayerFragment : Fragment()
                 RequestBody.create(MediaType.parse("text/plain"), fileDuration.toString())
             val roomCall = ApiUtils.musicRoomApi.uploadSong("123", filePart, namePart, durationPart)
 
-            roomCall.enqueue(object : Callback<Room> {
-                override fun onResponse(call: Call<Room>, response: Response<Room>) {
+            roomCall.enqueue(object : Callback<RoomDetails> {
+                override fun onResponse(call: Call<RoomDetails>, response: Response<RoomDetails>) {
                     if (response.isSuccessful) {
 //                        SnackBarUtils.showSnackBar(
 //                            requireView().findViewById(android.R.id.content),
@@ -214,7 +217,7 @@ class RoomPlayerFragment : Fragment()
                     }
                 }
 
-                override fun onFailure(call: Call<Room>, t: Throwable) {
+                override fun onFailure(call: Call<RoomDetails>, t: Throwable) {
                     SnackBarUtils.showSnackBar(
                         requireView().findViewById(android.R.id.content),
                         "Error uploading file"

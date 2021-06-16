@@ -22,7 +22,7 @@
             android:theme="@style/Widget.AppCompat.Toolbar">
 
             <TextView
-                android:id="@+id/room_name"
+                android:id="@+id/room_name_header"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center"

@@ -7,7 +7,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.master.musicroomclient.R
 import com.master.musicroomclient.model.Song
-import com.master.musicroomclient.utils.Constants.formatDuration
+import com.master.musicroomclient.utils.Constants.formatDurationToMinutesAndSeconds
 
 class SongListAdapter(
     private val values: List<Song>
@@ -22,7 +22,7 @@ class SongListAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val song = values[position]
         holder.songNameText.text = song.name
-        holder.songDurationText.text = formatDuration(song.duration)
+        holder.songDurationText.text = formatDurationToMinutesAndSeconds(song.duration)
     }
 
     override fun getItemCount(): Int = values.size
