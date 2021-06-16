@@ -51,8 +51,9 @@ class RoomActivity : AppCompatActivity() {
                 this@RoomActivity.supportFragmentManager
             )
             val viewPager = findViewById<ViewPager>(R.id.view_pager)
-            val tabLayout = findViewById<TabLayout>(R.id.tab_layout)
             viewPager.adapter = tabAdapter
+            viewPager.offscreenPageLimit = 2
+            val tabLayout = findViewById<TabLayout>(R.id.tab_layout)
             tabLayout.setupWithViewPager(viewPager)
         } else {
             setResult(RESULT_CANCELED)
