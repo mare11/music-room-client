@@ -66,12 +66,13 @@ class RoomActivity : AppCompatActivity() {
         if (this::roomDetails.isInitialized && this::userName.isInitialized) {
             val listener = Listener(this.userName)
             val roomCall = musicRoomApi.disconnectListener(this.roomDetails.code, listener)
-            roomCall.enqueue(object : Callback<Unit> {
-                override fun onResponse(call: Call<Unit>, response: Response<Unit>) {
+            roomCall.enqueue(object : Callback<Void> {
+
+                override fun onResponse(call: Call<Void>, response: Response<Void>) {
                     Log.i("ON DESTROZ", "SUCCESS!!")
                 }
 
-                override fun onFailure(call: Call<Unit>, t: Throwable) {
+                override fun onFailure(call: Call<Void>, t: Throwable) {
                     Log.i("ON DESTROZ", "ERROR!!")
                 }
 

@@ -1,85 +1,68 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:cardView="http://schemas.android.com/apk/res-auto"
     android:id="@+id/user_room_item_container"
     android:background="?android:attr/selectableItemBackground"
     android:layout_width="match_parent"
-    android:layout_height="60dp"
-    android:layout_marginBottom="0.5dp"
-    app:cardCornerRadius="0dp">
-
-    <!--    <TextView-->
-    <!--        android:id="@+id/user_room_item_code"-->
-    <!--        android:layout_width="wrap_content"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:layout_marginTop="6dp"-->
-    <!--        android:layout_marginStart="48dp"-->
-    <!--        android:layout_marginEnd="16dp"-->
-    <!--        android:ellipsize="end"-->
-    <!--        android:maxLines="1"-->
-    <!--        android:textStyle="bold"-->
-    <!--        android:textSize="16sp"-->
-    <!--        tools:text="@tools:sample/lorem/random" />-->
-
-    <!--    <androidx.cardview.widget.CardView-->
-    <!--        android:id="@+id/card_view"-->
-    <!--        android:layout_gravity="center"-->
-    <!--        android:layout_width="200dp"-->
-    <!--        android:layout_height="200dp"-->
-    <!--        card_view:cardCornerRadius="4dp">-->
-
-    <!--        <TextView-->
-    <!--            android:id="@+id/info_text"-->
-    <!--            android:layout_width="match_parent"-->
-    <!--            android:layout_height="match_parent" />-->
-    <!--    </androidx.cardview.widget.CardView>-->
+    android:layout_height="wrap_content">
 
     <androidx.cardview.widget.CardView
         android:id="@+id/card_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="5dp"
-        card_view:cardCornerRadius="4dp"
-        card_view:cardElevation="5dp">
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        cardView:cardCornerRadius="8dp"
+        cardView:cardElevation="8dp"
+        cardView:cardBackgroundColor="?attr/colorPrimary">
 
-        <RelativeLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <ImageView
+                android:id="@+id/user_room_image"
+                android:scaleType="centerCrop"
+                android:background="@drawable/ic_baseline_audiotrack_on_primary"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                cardView:layout_constraintStart_toStartOf="parent"
+                cardView:layout_constraintTop_toTopOf="parent"
+                android:contentDescription="Room icon" />
+
             <TextView
                 android:id="@+id/user_room_name"
-                android:layout_width="match_parent"
-                android:layout_height="20dp"
-                android:background="@color/design_default_color_primary"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                cardView:layout_constraintTop_toTopOf="parent"
+                cardView:layout_constraintStart_toEndOf="@id/user_room_image"
+                cardView:layout_constraintEnd_toEndOf="parent"
+                cardView:layout_constraintBottom_toBottomOf="parent"
                 android:gravity="center_vertical"
-                android:textColor="@android:color/white"
-                android:textSize="14sp"
-                tools:text="Room" />
+                android:textColor="?attr/colorOnPrimary"
+                android:textSize="24sp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                tools:text="Some room name" />
 
             <TextView
-                android:id="@+id/txtName"
+                android:id="@+id/user_room_listeners_number"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:textSize="12sp"
-                android:layout_below="@id/user_room_name"
-                android:layout_marginTop="10dp"
-                android:layout_marginStart="5dp"
-                android:text="Name" />
+                cardView:layout_constraintEnd_toStartOf="@id/user_room_listeners_number_icon"
+                cardView:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginEnd="5dp"
+                android:textSize="18sp"
+                android:textColor="?attr/colorOnPrimary"
+                tools:text="11" />
 
-            <TextView
-                android:id="@+id/txtEmail"
+            <ImageView
+                android:id="@+id/user_room_listeners_number_icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:layout_marginTop="10dp"
-                android:layout_alignParentEnd="true"
-                android:layout_marginEnd="150dp"
-                android:layout_alignBaseline="@id/txtName"
-                android:text="Email" />
-
-        </RelativeLayout>
+                cardView:layout_constraintEnd_toEndOf="parent"
+                cardView:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginEnd="5dp"
+                android:background="@drawable/ic_baseline_people_on_primary"
+                android:contentDescription="Number of listeners icon" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

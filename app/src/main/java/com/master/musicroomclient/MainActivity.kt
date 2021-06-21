@@ -2,7 +2,8 @@ package com.master.musicroomclient
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -18,6 +19,7 @@ import com.master.musicroomclient.dialog.JoinRoomDialogFragment.JoinRoomDialogLi
 import com.master.musicroomclient.model.Room
 import com.master.musicroomclient.model.RoomDetails
 import com.master.musicroomclient.utils.ApiUtils
+import com.master.musicroomclient.utils.ApiUtils.musicRoomApi
 import com.master.musicroomclient.utils.Constants
 import com.master.musicroomclient.utils.Constants.ROOM_EXTRA
 import com.master.musicroomclient.utils.Constants.ROOM_REQUEST_CODE
@@ -32,40 +34,45 @@ class MainActivity : AppCompatActivity(), CreateRoomDialogListener, JoinRoomDial
     UserRoomsAdapter.OnItemClickListener {
 
     private lateinit var userRoomsAdapter: UserRoomsAdapter
+    private lateinit var roomCodeText: EditText
 
     // TODO: extract some of this code to onCreateView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val roomCodeText = findViewById<EditText>(R.id.join_room_code_text)
-        val createRoomButton = findViewById<Button>(R.id.create_room_button)
+        roomCodeText = findViewById(R.id.join_room_code_text)
 
-        createRoomButton.setOnClickListener {
-            val createRoomDialogFragment = CreateRoomDialogFragment(this)
-            createRoomDialogFragment.isCancelable = false
-            createRoomDialogFragment.show(supportFragmentManager, "create_room")
-        }
+        userRoomsAdapter = UserRoomsAdapter(this@MainActivity, mutableListOf())
 
-        val joinRoomButton = findViewById<Button>(R.id.join_room_button)
-        joinRoomButton.setOnClickListener {
-            val roomCode = roomCodeText.text.toString()
-            if (roomCode.isNotBlank()) {
-                getRoomAndShowJoinRoomDialog(roomCode)
-            } else {
-                roomCodeText.error = "Enter room code"
-                roomCodeText.requestFocus()
-            }
-        }
-
-        val defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
-        val userRooms =
-            defaultSharedPreferences.getStringSet(USER_ROOMS_PREFERENCE_KEY, HashSet<String>())
         val userRoomsView = findViewById<RecyclerView>(R.id.user_rooms_view)
         userRoomsView.layoutManager = LinearLayoutManager(this)
-        if (userRooms != null) {
-            userRoomsAdapter = UserRoomsAdapter(this, userRooms.toList())
-            userRoomsView.adapter = userRoomsAdapter
+        userRoomsView.adapter = userRoomsAdapter
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val preferences = PreferenceManager.getDefaultSharedPreferences(this)
+        val userRooms = preferences.getStringSet(USER_ROOMS_PREFERENCE_KEY, HashSet<String>())
+
+        if (userRooms != null && userRooms.isNotEmpty()) {
+            val roomCall = musicRoomApi.getRoomsByCodes(userRooms.toList())
+            roomCall.enqueue(object : Callback<List<Room>> {
+                override fun onResponse(call: Call<List<Room>>, response: Response<List<Room>>) {
+                    val rooms = response.body()
+                    if (response.isSuccessful && rooms != null) {
+                        userRoomsAdapter.setRooms(rooms)
+                    } else {
+                        showSnackBar(findViewById(android.R.id.content), "Error")
+                    }
+                }
+
+                override fun onFailure(call: Call<List<Room>>, t: Throwable) {
+                    showSnackBar(findViewById(android.R.id.content), "Error")
+                    R.attr.colorPrimary
+                }
+
+            })
         }
     }
 
@@ -93,9 +100,29 @@ class MainActivity : AppCompatActivity(), CreateRoomDialogListener, JoinRoomDial
         startRoomActivity(userName, roomDetails)
     }
 
-    override fun onItemClick(position: Int) {
-        val roomCode = userRoomsAdapter.getRooms()[position]
-        getRoomAndShowJoinRoomDialog(roomCode)
+    override fun onItemClick(room: Room) {
+        showJoinRoomDialog(room)
+    }
+
+    override fun onItemDeleted(room: Room) {
+        val defaultSharedPreferences =
+            PreferenceManager.getDefaultSharedPreferences(this)
+        val userRooms = HashSet(
+            defaultSharedPreferences.getStringSet(
+                USER_ROOMS_PREFERENCE_KEY,
+                HashSet<String>()
+            )
+        )
+        userRooms.remove(room.code)
+        defaultSharedPreferences.edit()
+            .putStringSet(USER_ROOMS_PREFERENCE_KEY, userRooms).apply()
+
+        userRoomsAdapter.removeRoom(room)
+
+        showSnackBar(
+            findViewById(android.R.id.content),
+            "Room '${room.name}' removed from favorites"
+        )
     }
 
     private fun showJoinRoomDialog(room: Room) {
@@ -105,7 +132,7 @@ class MainActivity : AppCompatActivity(), CreateRoomDialogListener, JoinRoomDial
     }
 
     private fun getRoomAndShowJoinRoomDialog(roomCode: String) {
-        val roomCall = ApiUtils.musicRoomApi.getRoomByCode(roomCode)
+        val roomCall = musicRoomApi.getRoomByCode(roomCode)
         roomCall.enqueue(object : Callback<Room> {
             override fun onResponse(call: Call<Room>, response: Response<Room>) {
                 val room = response.body()
@@ -134,6 +161,33 @@ class MainActivity : AppCompatActivity(), CreateRoomDialogListener, JoinRoomDial
         if (requestCode == ROOM_REQUEST_CODE && resultCode != RESULT_OK) {
             showSnackBar(findViewById(android.R.id.content), "Error")
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.home_menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_create_room -> {
+                val createRoomDialogFragment = CreateRoomDialogFragment(this)
+                createRoomDialogFragment.isCancelable = false
+                createRoomDialogFragment.show(supportFragmentManager, "create_room")
+            }
+            R.id.action_join_room -> {
+                // TODO: create dialog for this
+                val roomCode = roomCodeText.text.toString()
+                if (roomCode.isNotBlank()) {
+                    getRoomAndShowJoinRoomDialog(roomCode)
+                } else {
+                    roomCodeText.error = "Enter room code"
+                    roomCodeText.requestFocus()
+                }
+            }
+
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     // TODO: check can this be done on some application shutdown event

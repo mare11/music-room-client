@@ -58,17 +58,20 @@ class MessageListAdapter(private val username: String) : RecyclerView.Adapter<Vi
     }
 
     private class SentMessageHolder(itemView: View) : ViewHolder(itemView) {
+        val messageSender: TextView = itemView.findViewById(R.id.sent_message_name)
         val messageText: TextView = itemView.findViewById(R.id.sent_message_text)
-        val messageDate: TextView = itemView.findViewById(R.id.sent_message_date)
+
+        //        val messageDate: TextView = itemView.findViewById(R.id.sent_message_date)
         val messageTime: TextView = itemView.findViewById(R.id.sent_message_time)
 
         fun bind(message: Message) {
+            messageSender.text = message.sender
             messageText.text = message.content
             val timestamp = LocalDateTime.ofInstant(
                 Instant.parse(message.timestamp),
                 ZoneOffset.systemDefault()
             )
-            messageDate.text = "${timestamp.month.name} ${timestamp.dayOfMonth}"
+//            messageDate.text = "${timestamp.month.name} ${timestamp.dayOfMonth}"
             messageTime.text = "${timestamp.hour} : ${timestamp.minute}"
         }
     }
@@ -76,7 +79,8 @@ class MessageListAdapter(private val username: String) : RecyclerView.Adapter<Vi
     private class ReceivedMessageHolder(itemView: View) : ViewHolder(itemView) {
         val messageSender: TextView = itemView.findViewById(R.id.received_message_name)
         val messageText: TextView = itemView.findViewById(R.id.received_message_text)
-        val messageDate: TextView = itemView.findViewById(R.id.received_message_date)
+
+        //        val messageDate: TextView = itemView.findViewById(R.id.received_message_date)
         val messageTime: TextView = itemView.findViewById(R.id.received_message_time)
 
         fun bind(message: Message) {
@@ -86,7 +90,7 @@ class MessageListAdapter(private val username: String) : RecyclerView.Adapter<Vi
                 Instant.parse(message.timestamp),
                 ZoneOffset.systemDefault()
             )
-            messageDate.text = "${timestamp.month.name} ${timestamp.dayOfMonth}"
+//            messageDate.text = "${timestamp.month.name} ${timestamp.dayOfMonth}"
             messageTime.text = "${timestamp.hour} : ${timestamp.minute}"
         }
     }

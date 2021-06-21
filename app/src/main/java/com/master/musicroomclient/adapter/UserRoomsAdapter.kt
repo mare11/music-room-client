@@ -1,47 +1,75 @@
 package com.master.musicroomclient.adapter
 
+import android.view.ContextMenu
+import android.view.ContextMenu.ContextMenuInfo
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.master.musicroomclient.R
+import com.master.musicroomclient.model.Room
 
 
 class UserRoomsAdapter(
-        private val listener: OnItemClickListener,
-        private val roomList: List<String>
+    private val listener: OnItemClickListener,
+    private val roomList: MutableList<Room>
 ) : RecyclerView.Adapter<UserRoomsAdapter.ViewHolder>() {
 
     interface OnItemClickListener {
-        fun onItemClick(position: Int)
+        fun onItemClick(room: Room)
+
+        fun onItemDeleted(room: Room)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.user_room_item_layout, parent, false)
+            .inflate(R.layout.user_room_item_layout, parent, false)
         return ViewHolder(view, listener)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val room = roomList[position]
-        holder.userRoomCodeText.text = room
+        holder.bind(room)
     }
 
     override fun getItemCount(): Int {
         return roomList.size
     }
 
-    fun getRooms(): List<String> {
-        return roomList
+    fun setRooms(rooms: List<Room>) {
+        roomList.clear()
+        roomList.addAll(rooms)
+        notifyDataSetChanged()
     }
 
-    class ViewHolder(view: View, onItemClickListener: OnItemClickListener) : RecyclerView.ViewHolder(view) {
-        val userRoomCodeText: TextView = view.findViewById(R.id.user_room_name)
+    fun removeRoom(room: Room) {
+        val index = roomList.indexOf(room)
+        roomList.remove(room)
+        notifyItemRemoved(index)
+    }
 
-        init {
+    class ViewHolder(private val view: View, private val listener: OnItemClickListener) :
+        RecyclerView.ViewHolder(view), View.OnCreateContextMenuListener {
+        private val userRoomNameText = view.findViewById<TextView>(R.id.user_room_name)
+        private val userRoomListenersNumberText =
+            view.findViewById<TextView>(R.id.user_room_listeners_number)
+        private lateinit var room: Room
+
+        fun bind(room: Room) {
+            this.room = room
+            userRoomNameText.text = room.name
+            userRoomListenersNumberText.text = room.numberOfListeners.toString()
             view.setOnClickListener {
-                onItemClickListener.onItemClick(bindingAdapterPosition)
+                this.listener.onItemClick(room)
+            }
+            view.setOnCreateContextMenuListener(this)
+        }
+
+        override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenuInfo?) {
+            menu.add("Remove from favorites").setOnMenuItemClickListener {
+                listener.onItemDeleted(room)
+                true
             }
         }
     }

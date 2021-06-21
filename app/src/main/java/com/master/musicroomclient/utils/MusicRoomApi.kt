@@ -14,17 +14,20 @@ interface MusicRoomApi {
     @GET("{code}")
     fun getRoomByCode(@Path("code") code: String): Call<Room>
 
-    @POST(value = ".")
+    @GET(".")
+    fun getRoomsByCodes(@Query("codes") codes: List<String>): Call<List<Room>>
+
+    @POST(".")
     fun createRoom(@Body roomRequest: RoomRequest): Call<Room>
 
-    @PUT(value = "{code}/connect")
+    @PUT("{code}/connect")
     fun connectListener(@Path("code") code: String, @Body listener: Listener): Call<RoomDetails>
 
-    @PUT(value = "{code}/disconnect")
-    fun disconnectListener(@Path("code") code: String, @Body listener: Listener): Call<Unit>
+    @PUT("{code}/disconnect")
+    fun disconnectListener(@Path("code") code: String, @Body listener: Listener): Call<Void>
 
     @Multipart
-    @POST(value = "{code}/upload")
+    @POST("{code}/upload")
     fun uploadSong(
         @Path("code") code: String, @Part file: MultipartBody.Part,
         @Part("name") name: RequestBody, @Part("duration") duration: RequestBody

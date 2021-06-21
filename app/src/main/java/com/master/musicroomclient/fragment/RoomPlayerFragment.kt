@@ -95,6 +95,7 @@ class RoomPlayerFragment : Fragment()
         seekBar = view.findViewById(R.id.player_seek_bar)
         seekBar.setOnTouchListener { _, _ -> true }
 
+        // TODO: extend song data with user who uploaded it, show it on playlist tab
         val addSongFileButton = view.findViewById<Button>(R.id.add_song_file_button)
         addSongFileButton.setOnClickListener {
             val getFileIntent = Intent(Intent.ACTION_GET_CONTENT)
