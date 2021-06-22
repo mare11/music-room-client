@@ -4,12 +4,13 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import com.master.musicroomclient.activity.RoomActivity
 import com.master.musicroomclient.adapter.UserRoomsAdapter
 import com.master.musicroomclient.dialog.CreateRoomDialogFragment
@@ -34,14 +35,23 @@ class MainActivity : AppCompatActivity(), CreateRoomDialogListener, JoinRoomDial
     UserRoomsAdapter.OnItemClickListener {
 
     private lateinit var userRoomsAdapter: UserRoomsAdapter
-    private lateinit var roomCodeText: EditText
+    private lateinit var joinRoomInput: TextInputEditText
 
     // TODO: extract some of this code to onCreateView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        roomCodeText = findViewById(R.id.join_room_code_text)
+        joinRoomInput = findViewById(R.id.join_room_input)
+        val joinRoomLayout = findViewById<TextInputLayout>(R.id.join_room_layout)
+        joinRoomLayout.setEndIconOnClickListener {
+            val roomCode = joinRoomInput.text.toString()
+            if (roomCode.isNotBlank()) {
+                getRoomAndShowJoinRoomDialog(roomCode)
+            } else {
+                joinRoomInput.requestFocus()
+            }
+        }
 
         userRoomsAdapter = UserRoomsAdapter(this@MainActivity, mutableListOf())
 
@@ -175,17 +185,6 @@ class MainActivity : AppCompatActivity(), CreateRoomDialogListener, JoinRoomDial
                 createRoomDialogFragment.isCancelable = false
                 createRoomDialogFragment.show(supportFragmentManager, "create_room")
             }
-            R.id.action_join_room -> {
-                // TODO: create dialog for this
-                val roomCode = roomCodeText.text.toString()
-                if (roomCode.isNotBlank()) {
-                    getRoomAndShowJoinRoomDialog(roomCode)
-                } else {
-                    roomCodeText.error = "Enter room code"
-                    roomCodeText.requestFocus()
-                }
-            }
-
         }
         return super.onOptionsItemSelected(item)
     }

@@ -22,7 +22,7 @@
             <ImageView
                 android:id="@+id/user_room_image"
                 android:scaleType="centerCrop"
-                android:background="@drawable/ic_baseline_audiotrack_on_primary"
+                android:background="@drawable/ic_baseline_audiotrack_on_primary_60"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 cardView:layout_constraintStart_toStartOf="parent"
@@ -61,7 +61,7 @@
                 cardView:layout_constraintEnd_toEndOf="parent"
                 cardView:layout_constraintBottom_toBottomOf="parent"
                 android:layout_marginEnd="5dp"
-                android:background="@drawable/ic_baseline_people_on_primary"
+                android:background="@drawable/ic_baseline_people_on_primary_24"
                 android:contentDescription="Number of listeners icon" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>

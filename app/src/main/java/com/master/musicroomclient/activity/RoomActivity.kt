@@ -55,6 +55,10 @@ class RoomActivity : AppCompatActivity() {
             viewPager.offscreenPageLimit = 2
             val tabLayout = findViewById<TabLayout>(R.id.tab_layout)
             tabLayout.setupWithViewPager(viewPager)
+            // TODO: setup icons and badges for tabs
+//            tabLayout.getTabAt(1)?.icon =
+//                ContextCompat.getDrawable(this, R.drawable.ic_baseline_audiotrack_on_primary_60)
+//            tabLayout.getTabAt(0)?.orCreateBadge?.number = 3
         } else {
             setResult(RESULT_CANCELED)
             finish()

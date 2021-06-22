@@ -54,8 +54,7 @@
             android:id="@+id/tab_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
-            tools:background="@color/purple_500" />
+            android:background="@color/purple_500" />
 
     </androidx.viewpager.widget.ViewPager>
 

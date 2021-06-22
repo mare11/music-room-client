@@ -34,6 +34,7 @@
         android:layout_marginBottom="4dp"
         android:hint="Room name" />
 
+    <!--    TODO: use material toggle button-->
     <com.google.android.material.switchmaterial.SwitchMaterial
         android:id="@+id/create_room_private_switch"
         android:layout_width="wrap_content"
