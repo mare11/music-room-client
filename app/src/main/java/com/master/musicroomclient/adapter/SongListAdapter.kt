@@ -23,6 +23,7 @@ class SongListAdapter(
         val song = values[position]
         holder.songNameText.text = song.name
         holder.songDurationText.text = formatDurationToMinutesAndSeconds(song.duration)
+        holder.songUploaderText.text = song.uploader
     }
 
     override fun getItemCount(): Int = values.size
@@ -30,5 +31,6 @@ class SongListAdapter(
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val songNameText: TextView = view.findViewById(R.id.song_name)
         val songDurationText: TextView = view.findViewById(R.id.song_duration)
+        val songUploaderText: TextView = view.findViewById(R.id.song_uploader)
     }
 }

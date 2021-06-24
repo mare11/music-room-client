@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="8dp"
-    android:layout_marginTop="16dp">
+    android:layout_marginTop="3dp">
 
     <TextView
         android:id="@+id/received_message_name"
@@ -56,6 +56,7 @@
                 android:layout_marginEnd="5dp"
                 android:layout_marginBottom="2dp"
                 tools:text="8:00"
+                android:textColor="#000000"
                 android:textSize="16sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toEndOf="@id/received_message_text"

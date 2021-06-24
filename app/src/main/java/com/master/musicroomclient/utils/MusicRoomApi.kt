@@ -29,7 +29,10 @@ interface MusicRoomApi {
     @Multipart
     @POST("{code}/upload")
     fun uploadSong(
-        @Path("code") code: String, @Part file: MultipartBody.Part,
-        @Part("name") name: RequestBody, @Part("duration") duration: RequestBody
+        @Path("code") code: String,
+        @Part file: MultipartBody.Part,
+        @Part("name") name: RequestBody,
+        @Part("duration") duration: RequestBody,
+        @Part("uploader") uploader: RequestBody
     ): Call<RoomDetails>
 }

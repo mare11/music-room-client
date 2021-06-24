@@ -9,5 +9,6 @@ data class RoomDetails(
     val name: String,
     val code: String,
     val listeners: List<Listener>,
-    val playlist: List<Song>
+    val playlist: List<Song>,
+    val currentSong: CurrentSong?
 ) : Parcelable

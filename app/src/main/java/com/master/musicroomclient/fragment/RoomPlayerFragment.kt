@@ -19,6 +19,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.master.musicroomclient.R
+import com.master.musicroomclient.model.CurrentSong
 import com.master.musicroomclient.model.RoomDetails
 import com.master.musicroomclient.model.Song
 import com.master.musicroomclient.utils.ApiUtils
@@ -28,7 +29,7 @@ import com.master.musicroomclient.utils.Constants
 import com.master.musicroomclient.utils.Constants.SERVER_HOST
 import com.master.musicroomclient.utils.Constants.SERVER_STREAM_PORT
 import com.master.musicroomclient.utils.Constants.formatDurationToMinutesAndSeconds
-import com.master.musicroomclient.utils.SnackBarUtils
+import com.master.musicroomclient.utils.SnackBarUtils.showSnackBar
 import io.reactivex.disposables.CompositeDisposable
 import okhttp3.MediaType
 import okhttp3.MultipartBody
@@ -42,9 +43,7 @@ import retrofit2.Response
 import ua.naiksoftware.stomp.dto.StompMessage
 
 
-class RoomPlayerFragment : Fragment()
-//    , MediaPlayer.EventListener
-{
+class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
 
     private val libVLC by lazy {
         LibVLC(activity, ArrayList<String>().apply {
@@ -55,6 +54,8 @@ class RoomPlayerFragment : Fragment()
     }
 
     private lateinit var roomCode: String
+    private lateinit var userName: String
+    private var currentSong: CurrentSong? = null
     private val mediaPlayer by lazy { MediaPlayer(libVLC) }
     private val handler by lazy { Handler(Looper.getMainLooper()) }
     private lateinit var songNameText: TextView
@@ -72,6 +73,8 @@ class RoomPlayerFragment : Fragment()
                 initPlayer()
                 connectToStreamTopic()
             }
+            bundle.getParcelable<CurrentSong>(ARG_CURRENT_SONG)?.also { currentSong = it }
+            bundle.getString(ARG_USER_NAME)?.also { userName = it }
         }
 
     }
@@ -83,7 +86,7 @@ class RoomPlayerFragment : Fragment()
 
         val view = inflater.inflate(R.layout.fragment_room_player, container, false)
 
-        if (!this::roomCode.isInitialized) {
+        if (!this::roomCode.isInitialized || !this::userName.isInitialized) {
             // TODO: show some error message
             return view
         }
@@ -93,9 +96,24 @@ class RoomPlayerFragment : Fragment()
         songTotalTimeText = view.findViewById(R.id.song_total_time_text)
 
         seekBar = view.findViewById(R.id.player_seek_bar)
-        seekBar.setOnTouchListener { _, _ -> true }
+        seekBar.setOnTouchListener { _, _ -> true } // FIXME
 
-        // TODO: extend song data with user who uploaded it, show it on playlist tab
+        currentSong?.let {
+            Log.i(
+                "PLAYER FRAGMENT",
+                "Found current song with name: ${it.song.name} and elapsed duration: ${it.elapsedDuration}"
+            )
+            if (!mediaPlayer.isPlaying) {
+                mediaPlayer.play()
+            }
+            songNameText.text = it.song.name
+            seekBar.max = it.song.duration.toInt()
+            seekBar.progress = it.elapsedDuration.toInt()
+            songCurrentTimeText.text = formatDurationToMinutesAndSeconds(0L)
+            songTotalTimeText.text = formatDurationToMinutesAndSeconds(it.song.duration)
+            handler.postDelayed(updateSongTime, 1000)
+        }
+
         val addSongFileButton = view.findViewById<Button>(R.id.add_song_file_button)
         addSongFileButton.setOnClickListener {
             val getFileIntent = Intent(Intent.ACTION_GET_CONTENT)
@@ -138,6 +156,8 @@ class RoomPlayerFragment : Fragment()
         val path = "rtsp://$SERVER_HOST:$SERVER_STREAM_PORT/$roomCode"
         val media = Media(libVLC, Uri.parse(path))
         mediaPlayer.media = media
+        media.release()
+        mediaPlayer.setEventListener(this)
 
         val powerManager = requireActivity().getSystemService(Context.POWER_SERVICE) as PowerManager
         val newWakeLock =
@@ -150,41 +170,48 @@ class RoomPlayerFragment : Fragment()
             .subscribe { topicMessage: StompMessage ->
                 val nextSong = gson.fromJson(topicMessage.payload, Song::class.java)
                 println("Got next song:${nextSong.name} with duration:${nextSong.duration}")
+                currentSong = CurrentSong(nextSong, 0L)
+                if (!mediaPlayer.isPlaying) {
+                    Log.i("NEXT_SONG_PLAYER", "Start playing")
+                    initPlayer()
+                    mediaPlayer.play()
+                    handler.postDelayed(updateSongTime, 1000)
+                }
                 requireActivity().runOnUiThread {
                     songNameText.text = nextSong.name
-                    seekBar.progress = 0
                     seekBar.max = nextSong.duration.toInt()
+                    seekBar.progress = 0
                     songCurrentTimeText.text = formatDurationToMinutesAndSeconds(0L)
                     songTotalTimeText.text = formatDurationToMinutesAndSeconds(nextSong.duration)
                 }
-                handler.postDelayed(updateSongTime, 1000)
             }
         compositeDisposable.add(topicDisposable)
     }
 
     private val updateSongTime: Runnable = object : Runnable {
         override fun run() {
-            val currentPosition = mediaPlayer.time
-            println("Current player time:$currentPosition")
-            seekBar.progress = currentPosition.toInt()
-            songCurrentTimeText.text = formatDurationToMinutesAndSeconds(currentPosition)
+            val currentPlayerTime = mediaPlayer.time
+            println("*** Current player time:$currentPlayerTime ***")
+            println("*** Current progress:${seekBar.progress} ***")
+            seekBar.progress += 1000
+            songCurrentTimeText.text = formatDurationToMinutesAndSeconds(seekBar.progress.toLong())
             handler.postDelayed(this, 1000)
         }
     }
 
-//    override fun onEvent(event: MediaPlayer.Event) {
-//        when (event.type) {ing -> Toast.makeText(activity, "Playing", Toast.LENGTH_SHORT)
-////                .show()
-//            MediaPlayer.Event.Play
-//            MediaPlayer.Event.EncounteredError -> Toast.makeText(
-//                activity,
-//                "Error",
-//                Toast.LENGTH_SHORT
-//            ).show()
-//            MediaPlayer.Event.Buffering -> Toast.makeText(activity, "Buffering", Toast.LENGTH_SHORT)
-//                .show()
-//        }
-//    }
+    override fun onEvent(event: MediaPlayer.Event) {
+        when (event.type) {
+            MediaPlayer.Event.EndReached -> {
+                Log.i("LIBVLC_EVENTS", "EndReached")
+                songNameText.text = ""
+                seekBar.max = 0
+                seekBar.progress = 0
+                songCurrentTimeText.text = ""
+                songTotalTimeText.text = ""
+                handler.removeCallbacks(updateSongTime)
+            }
+        }
+    }
 
     private fun uploadFile(fileUri: Uri) {
         val fileName = getFileName(fileUri)
@@ -197,7 +224,15 @@ class RoomPlayerFragment : Fragment()
             val namePart = RequestBody.create(MediaType.parse("text/plain"), fileName)
             val durationPart =
                 RequestBody.create(MediaType.parse("text/plain"), fileDuration.toString())
-            val roomCall = ApiUtils.musicRoomApi.uploadSong("123", filePart, namePart, durationPart)
+            val uploaderPart =
+                RequestBody.create(MediaType.parse("text/plain"), userName)
+            val roomCall = ApiUtils.musicRoomApi.uploadSong(
+                roomCode,
+                filePart,
+                namePart,
+                durationPart,
+                uploaderPart
+            )
 
             roomCall.enqueue(object : Callback<RoomDetails> {
                 override fun onResponse(call: Call<RoomDetails>, response: Response<RoomDetails>) {
@@ -211,7 +246,7 @@ class RoomPlayerFragment : Fragment()
                             mediaPlayer.play()
                         }
                     } else {
-                        SnackBarUtils.showSnackBar(
+                        showSnackBar(
                             requireView().findViewById(android.R.id.content),
                             "Error uploading file"
                         )
@@ -219,15 +254,13 @@ class RoomPlayerFragment : Fragment()
                 }
 
                 override fun onFailure(call: Call<RoomDetails>, t: Throwable) {
-                    SnackBarUtils.showSnackBar(
-                        requireView().findViewById(android.R.id.content),
-                        "Error uploading file"
+                    showSnackBar(
+                        requireView().findViewById(android.R.id.content), "Error uploading file"
                     )
                 }
             })
-        } ?: SnackBarUtils.showSnackBar(
-            requireView().findViewById(android.R.id.content),
-            "Error opening the file"
+        } ?: showSnackBar(
+            requireView().findViewById(android.R.id.content), "Error opening the file"
         )
     }
 
@@ -260,12 +293,16 @@ class RoomPlayerFragment : Fragment()
 
     companion object {
         private const val ARG_ROOM_CODE = "roomCode"
+        private const val ARG_CURRENT_SONG = "currentSong"
+        private const val ARG_USER_NAME = "userName"
 
         @JvmStatic
-        fun newInstance(roomCode: String) =
+        fun newInstance(roomCode: String, currentSong: CurrentSong?, userName: String) =
             RoomPlayerFragment().apply {
                 arguments = Bundle().apply {
                     putString(ARG_ROOM_CODE, roomCode)
+                    putParcelable(ARG_CURRENT_SONG, currentSong)
+                    putString(ARG_USER_NAME, userName)
                 }
             }
     }

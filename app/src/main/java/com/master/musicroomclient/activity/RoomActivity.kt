@@ -41,7 +41,7 @@ class RoomActivity : AppCompatActivity() {
 
             supportFragmentManager.beginTransaction().replace(
                 R.id.music_player_container,
-                RoomPlayerFragment.newInstance(roomDetails.code)
+                RoomPlayerFragment.newInstance(roomDetails.code, roomDetails.currentSong, userName)
             ).commit()
 
             val tabAdapter = TabAdapter(
