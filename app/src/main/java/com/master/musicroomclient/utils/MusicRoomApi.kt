@@ -1,6 +1,5 @@
 package com.master.musicroomclient.utils
 
-import com.master.musicroomclient.model.Listener
 import com.master.musicroomclient.model.Room
 import com.master.musicroomclient.model.RoomDetails
 import com.master.musicroomclient.model.RoomRequest
@@ -21,10 +20,16 @@ interface MusicRoomApi {
     fun createRoom(@Body roomRequest: RoomRequest): Call<Room>
 
     @PUT("{code}/connect")
-    fun connectListener(@Path("code") code: String, @Body listener: Listener): Call<RoomDetails>
+    fun connectListener(
+        @Path("code") code: String,
+        @Query("listener") listener: String
+    ): Call<RoomDetails>
 
     @PUT("{code}/disconnect")
-    fun disconnectListener(@Path("code") code: String, @Body listener: Listener): Call<Void>
+    fun disconnectListener(
+        @Path("code") code: String,
+        @Query("listener") listener: String
+    ): Call<Void>
 
     @Multipart
     @POST("{code}/upload")

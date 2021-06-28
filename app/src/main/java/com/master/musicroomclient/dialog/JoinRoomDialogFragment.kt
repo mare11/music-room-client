@@ -11,7 +11,6 @@ import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import androidx.preference.PreferenceManager
 import com.master.musicroomclient.R
-import com.master.musicroomclient.model.Listener
 import com.master.musicroomclient.model.Room
 import com.master.musicroomclient.model.RoomDetails
 import com.master.musicroomclient.utils.ApiUtils.musicRoomApi
@@ -82,7 +81,7 @@ class JoinRoomDialogFragment : DialogFragment() {
                 positiveButton.setOnClickListener {
                     val name = nameInput.text.toString()
                     if (name.isNotBlank()) {
-                        val roomCall = musicRoomApi.connectListener(room.code, Listener(name))
+                        val roomCall = musicRoomApi.connectListener(room.code, name)
                         roomCall.enqueue(object : Callback<RoomDetails> {
                             override fun onResponse(
                                 call: Call<RoomDetails>,

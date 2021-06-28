@@ -10,7 +10,7 @@ import com.master.musicroomclient.model.Song
 import com.master.musicroomclient.utils.Constants.formatDurationToMinutesAndSeconds
 
 class SongListAdapter(
-    private val values: List<Song>
+    private val values: MutableList<Song>
 ) : RecyclerView.Adapter<SongListAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -27,6 +27,18 @@ class SongListAdapter(
     }
 
     override fun getItemCount(): Int = values.size
+
+    fun addSong(song: Song) {
+        values.add(song)
+        notifyItemInserted(values.size - 1)
+    }
+
+    fun removeFirstSong() {
+        val removedSong = values.removeFirstOrNull()
+        if (removedSong != null) {
+            notifyItemRemoved(0)
+        }
+    }
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val songNameText: TextView = view.findViewById(R.id.song_name)

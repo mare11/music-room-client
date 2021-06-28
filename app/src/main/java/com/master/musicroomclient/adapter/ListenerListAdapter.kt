@@ -12,7 +12,7 @@ import java.time.Duration
 import java.time.LocalDateTime
 
 class ListenerListAdapter(
-    private val values: List<Listener>
+    private val values: MutableList<Listener>
 ) : RecyclerView.Adapter<ListenerListAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -31,6 +31,19 @@ class ListenerListAdapter(
     }
 
     override fun getItemCount(): Int = values.size
+
+    fun addListener(listener: Listener) {
+        values.add(listener)
+        notifyItemInserted(values.size - 1)
+    }
+
+    fun removeListener(listenerName: String) {
+        val index = values.indexOfFirst { it.name == listenerName }
+        if (index > -1) {
+            values.removeAt(index)
+            notifyItemRemoved(index)
+        }
+    }
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val listenerNameText: TextView = view.findViewById(R.id.listener_name)

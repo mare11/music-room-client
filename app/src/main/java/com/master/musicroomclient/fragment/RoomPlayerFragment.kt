@@ -71,7 +71,7 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
             bundle.getString(ARG_ROOM_CODE)?.also {
                 roomCode = it
                 initPlayer()
-                connectToStreamTopic()
+                connectToSongTopic()
             }
             bundle.getParcelable<CurrentSong>(ARG_CURRENT_SONG)?.also { currentSong = it }
             bundle.getString(ARG_USER_NAME)?.also { userName = it }
@@ -121,13 +121,6 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
             startActivityForResult(getFileIntent, Constants.FILE_REQUEST_CODE)
         }
 
-        val playButton = view.findViewById<Button>(R.id.play_button)
-        playButton.setOnClickListener {
-            if (!mediaPlayer.isPlaying) {
-                mediaPlayer.play()
-            }
-        }
-
         return view
     }
 
@@ -165,8 +158,8 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
         newWakeLock.acquire(10 * 60 * 1000L /*10 minutes*/)
     }
 
-    private fun connectToStreamTopic() {
-        val topicDisposable = musicRoomStompClient.topic("/topic/room/${this.roomCode}/stream")
+    private fun connectToSongTopic() {
+        val topicDisposable = musicRoomStompClient.topic("/topic/room/$roomCode/song/next")
             .subscribe { topicMessage: StompMessage ->
                 val nextSong = gson.fromJson(topicMessage.payload, Song::class.java)
                 println("Got next song:${nextSong.name} with duration:${nextSong.duration}")
@@ -190,9 +183,6 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
 
     private val updateSongTime: Runnable = object : Runnable {
         override fun run() {
-            val currentPlayerTime = mediaPlayer.time
-            println("*** Current player time:$currentPlayerTime ***")
-            println("*** Current progress:${seekBar.progress} ***")
             seekBar.progress += 1000
             songCurrentTimeText.text = formatDurationToMinutesAndSeconds(seekBar.progress.toLong())
             handler.postDelayed(this, 1000)

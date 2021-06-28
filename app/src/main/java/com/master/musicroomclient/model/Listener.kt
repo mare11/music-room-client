@@ -4,7 +4,4 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class Listener(val name: String, val connectedAt: String?) : Parcelable {
-
-    constructor(name: String) : this(name, null)
-}
+data class Listener(val name: String, val connectedAt: String) : Parcelable

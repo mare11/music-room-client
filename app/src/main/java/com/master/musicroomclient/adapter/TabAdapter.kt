@@ -20,8 +20,8 @@ class TabAdapter(
 
     override fun getItem(position: Int): Fragment {
         return when (position) {
-            2 -> RoomListenersFragment.newInstance(roomDetails.listeners)
-            1 -> RoomPlaylistFragment.newInstance(roomDetails.playlist)
+            2 -> RoomListenersFragment.newInstance(roomDetails.code, roomDetails.listeners)
+            1 -> RoomPlaylistFragment.newInstance(roomDetails.code, roomDetails.playlist)
             else -> RoomChatFragment.newInstance(roomDetails.code, userName)
         }
     }

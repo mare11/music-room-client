@@ -11,7 +11,6 @@ import com.google.android.material.tabs.TabLayout
 import com.master.musicroomclient.R
 import com.master.musicroomclient.adapter.TabAdapter
 import com.master.musicroomclient.fragment.RoomPlayerFragment
-import com.master.musicroomclient.model.Listener
 import com.master.musicroomclient.model.RoomDetails
 import com.master.musicroomclient.utils.ApiUtils.musicRoomApi
 import com.master.musicroomclient.utils.Constants.ROOM_EXTRA
@@ -68,8 +67,7 @@ class RoomActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         if (this::roomDetails.isInitialized && this::userName.isInitialized) {
-            val listener = Listener(this.userName)
-            val roomCall = musicRoomApi.disconnectListener(this.roomDetails.code, listener)
+            val roomCall = musicRoomApi.disconnectListener(this.roomDetails.code, this.userName)
             roomCall.enqueue(object : Callback<Void> {
 
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
