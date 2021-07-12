@@ -8,8 +8,8 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.fragment.app.DialogFragment
 import com.master.musicroomclient.R
+import com.master.musicroomclient.model.NewRoom
 import com.master.musicroomclient.model.Room
-import com.master.musicroomclient.model.RoomRequest
 import com.master.musicroomclient.utils.ApiUtils
 import com.master.musicroomclient.utils.SnackBarUtils.showSnackBar
 import retrofit2.Call
@@ -46,7 +46,7 @@ class CreateRoomDialogFragment(private val dialogListener: CreateRoomDialogListe
                 positiveButton.setOnClickListener {
                     val roomName = roomNameInput.text.toString().trim()
                     if (roomName.isNotBlank()) {
-                        val newRoom = RoomRequest(roomName)
+                        val newRoom = NewRoom(roomName)
                         val createRoomCall = ApiUtils.musicRoomApi.createRoom(newRoom)
 
                         createRoomCall.enqueue(object : Callback<Room> {

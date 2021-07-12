@@ -4,7 +4,7 @@ import java.time.Duration
 
 object Constants {
 
-    const val SERVER_HOST = "192.168.1.8"
+    const val SERVER_HOST = "192.168.0.13"
     const val SERVER_PORT = 8008
     const val SERVER_STREAM_PORT = 5555
 
@@ -18,6 +18,8 @@ object Constants {
     const val FILE_REQUEST_CODE = 12
     const val DEFAULT_FILE_NAME = "Unknown title"
     const val DEFAULT_FILE_DURATION = 0L
+
+    const val ROOM_CODE = "ROOM_CODE"
 
     fun formatDurationToMinutesAndSeconds(millisecondsDuration: Long): String {
         val duration = Duration.ofMillis(millisecondsDuration)

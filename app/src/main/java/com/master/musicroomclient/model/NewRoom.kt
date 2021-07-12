@@ -1,3 +1,3 @@
 package com.master.musicroomclient.model
 
-data class RoomRequest(val name: String)
+data class NewRoom(val name: String)

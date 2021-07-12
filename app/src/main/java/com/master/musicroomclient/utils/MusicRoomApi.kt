@@ -1,8 +1,8 @@
 package com.master.musicroomclient.utils
 
+import com.master.musicroomclient.model.NewRoom
 import com.master.musicroomclient.model.Room
 import com.master.musicroomclient.model.RoomDetails
-import com.master.musicroomclient.model.RoomRequest
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Call
@@ -17,7 +17,7 @@ interface MusicRoomApi {
     fun getRoomsByCodes(@Query("codes") codes: List<String>): Call<List<Room>>
 
     @POST(".")
-    fun createRoom(@Body roomRequest: RoomRequest): Call<Room>
+    fun createRoom(@Body newRoom: NewRoom): Call<Room>
 
     @PUT("{code}/connect")
     fun connectListener(
@@ -40,4 +40,7 @@ interface MusicRoomApi {
         @Part("duration") duration: RequestBody,
         @Part("uploader") uploader: RequestBody
     ): Call<RoomDetails>
+
+    @PUT("{code}/skip")
+    fun skipSong(@Path("code") code: String): Call<Void>
 }
