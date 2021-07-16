@@ -45,11 +45,14 @@
 
         <Button
             android:id="@+id/send_message_button"
-            android:layout_width="64dp"
+            android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_alignParentEnd="true"
-            android:background="@android:drawable/ic_menu_send"
-            android:textColor="@color/design_default_color_primary" />
+            android:layout_marginEnd="10dp"
+            app:icon="@drawable/ic_baseline_send_primary_24"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            style="@style/Widget.MaterialComponents.Button.TextButton.Icon" />
 
     </RelativeLayout>
 

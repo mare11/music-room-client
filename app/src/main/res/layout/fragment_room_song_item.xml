@@ -44,13 +44,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingTop="8dp"
-                android:paddingHorizontal="12dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="5dp"
                 android:textColor="#000000"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/song_name"
                 app:layout_constraintBottom_toBottomOf="@id/song_uploader"
                 app:layout_constraintEnd_toStartOf="@id/song_uploader"
-                android:text="by" />
+                android:text="uploaded by" />
 
             <TextView
                 android:id="@+id/song_uploader"

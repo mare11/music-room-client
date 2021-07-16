@@ -21,7 +21,7 @@
         android:id="@+id/sent_message_card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardBackgroundColor="#ABE2FB"
+        app:cardBackgroundColor="?attr/colorPrimary"
         app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
         app:cardPreventCornerOverlap="false"

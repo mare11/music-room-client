@@ -15,17 +15,13 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.SeekBar
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.master.musicroomclient.R
 import com.master.musicroomclient.model.CurrentSong
 import com.master.musicroomclient.model.RoomDetails
 import com.master.musicroomclient.model.Song
-import com.master.musicroomclient.utils.ApiUtils
 import com.master.musicroomclient.utils.ApiUtils.gson
 import com.master.musicroomclient.utils.ApiUtils.musicRoomApi
 import com.master.musicroomclient.utils.ApiUtils.musicRoomStompClient
@@ -64,9 +60,13 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
     private val mediaPlayer by lazy { MediaPlayer(libVLC) }
     private val handler by lazy { Handler(Looper.getMainLooper()) }
     private lateinit var songNameText: TextView
+    private lateinit var songUploaderText: TextView
+    private lateinit var songUploaderPrefixText: TextView
     private lateinit var seekBar: SeekBar
     private lateinit var songCurrentTimeText: TextView
     private lateinit var songTotalTimeText: TextView
+    private lateinit var addSongButton: Button
+    private lateinit var addSongProgressBar: ProgressBar
     private lateinit var skipSongButton: Button
     private val compositeDisposable: CompositeDisposable = CompositeDisposable()
 
@@ -98,18 +98,21 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
         }
 
         songNameText = view.findViewById(R.id.song_name_text)
+        songUploaderText = view.findViewById(R.id.song_uploader_text)
+        songUploaderPrefixText = view.findViewById(R.id.song_uploader_prefix)
         songCurrentTimeText = view.findViewById(R.id.song_current_time_text)
         songTotalTimeText = view.findViewById(R.id.song_total_time_text)
 
         seekBar = view.findViewById(R.id.player_seek_bar)
         seekBar.setOnTouchListener { _, _ -> true } // FIXME
 
-        val addSongButton = view.findViewById<Button>(R.id.add_song_button)
+        addSongButton = view.findViewById<Button>(R.id.add_song_button)
         addSongButton.setOnClickListener {
             val getFileIntent = Intent(Intent.ACTION_GET_CONTENT)
             getFileIntent.type = "audio/*"
             startActivityForResult(getFileIntent, Constants.FILE_REQUEST_CODE)
         }
+        addSongProgressBar = view.findViewById<ProgressBar>(R.id.add_song_progress_bar)
 
         val copyRoomCodeButton = view.findViewById<Button>(R.id.copy_room_code_button)
         copyRoomCodeButton.setOnClickListener {
@@ -144,6 +147,8 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
                 mediaPlayer.play()
             }
             songNameText.text = it.song.name
+            songUploaderText.text = it.song.uploader
+            songUploaderPrefixText.visibility = View.VISIBLE
             seekBar.max = it.song.duration.toInt()
             seekBar.progress = it.elapsedDuration.toInt()
             songCurrentTimeText.text = formatDurationToMinutesAndSeconds(0L)
@@ -204,6 +209,8 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
                 }
                 requireActivity().runOnUiThread {
                     songNameText.text = nextSong.name
+                    songUploaderText.text = nextSong.uploader
+                    songUploaderPrefixText.visibility = View.VISIBLE
                     seekBar.max = nextSong.duration.toInt()
                     seekBar.progress = 0
                     songCurrentTimeText.text = formatDurationToMinutesAndSeconds(0L)
@@ -229,6 +236,8 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
             MediaPlayer.Event.EndReached -> {
                 Log.i("LIBVLC_EVENTS", "EndReached")
                 songNameText.text = ""
+                songUploaderText.text = ""
+                songUploaderPrefixText.visibility = View.GONE
                 seekBar.max = 0
                 seekBar.progress = 0
                 songCurrentTimeText.text = ""
@@ -256,7 +265,7 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
                 RequestBody.create(MediaType.parse("text/plain"), fileDuration.toString())
             val uploaderPart =
                 RequestBody.create(MediaType.parse("text/plain"), userName)
-            val roomCall = ApiUtils.musicRoomApi.uploadSong(
+            val roomCall = musicRoomApi.uploadSong(
                 roomCode,
                 filePart,
                 namePart,
@@ -264,6 +273,8 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
                 uploaderPart
             )
 
+            addSongButton.isEnabled = false
+            addSongProgressBar.visibility = View.VISIBLE
             roomCall.enqueue(object : Callback<RoomDetails> {
                 override fun onResponse(
                     call: Call<RoomDetails>,
@@ -284,12 +295,16 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
                             "Error uploading file"
                         )
                     }
+                    addSongButton.isEnabled = true
+                    addSongProgressBar.visibility = View.GONE
                 }
 
                 override fun onFailure(call: Call<RoomDetails>, t: Throwable) {
                     showSnackBar(
                         requireView().findViewById(android.R.id.content), "Error uploading file"
                     )
+                    addSongButton.isEnabled = true
+                    addSongProgressBar.visibility = View.GONE
                 }
             })
         } ?: showSnackBar(
