@@ -9,7 +9,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.os.PowerManager
 import android.provider.OpenableColumns
 import android.util.Log
 import android.view.LayoutInflater
@@ -160,10 +159,23 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
         return view
     }
 
+    override fun onResume() {
+        super.onResume()
+        currentSong?.also {
+            if (!mediaPlayer.isPlaying) {
+                mediaPlayer.play()
+            }
+        }
+    }
+
     override fun onStop() {
         super.onStop()
-        mediaPlayer.stop()
-        handler.removeCallbacks(updateSongTime)
+        if (mediaPlayer.isPlaying) {
+            mediaPlayer.stop()
+        }
+        if (currentSong == null) {
+            handler.removeCallbacks(updateSongTime)
+        }
     }
 
     override fun onDestroy() {
@@ -187,12 +199,6 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
         mediaPlayer.media = media
         media.release()
         mediaPlayer.setEventListener(this)
-
-        val powerManager =
-            requireActivity().getSystemService(Context.POWER_SERVICE) as PowerManager
-        val newWakeLock =
-            powerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "AppName:my tag")
-        newWakeLock.acquire(10 * 60 * 1000L /*10 minutes*/)
     }
 
     private fun connectToSongTopic() {

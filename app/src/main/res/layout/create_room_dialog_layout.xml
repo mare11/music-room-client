@@ -44,5 +44,6 @@
         android:layout_marginRight="4dp"
         app:switchPadding="20dp"
         android:checked="true"
+        android:clickable="false"
         android:text="Private" />
 </LinearLayout>

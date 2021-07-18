@@ -4,7 +4,7 @@ import java.time.Duration
 
 object Constants {
 
-    const val SERVER_HOST = "192.168.0.13"
+    const val SERVER_HOST = "192.168.1.5"
     const val SERVER_PORT = 8008
     const val SERVER_STREAM_PORT = 5555
 
@@ -21,10 +21,12 @@ object Constants {
 
     const val ROOM_CODE = "ROOM_CODE"
 
+    private const val SECONDS_DIGITS = 2
+
     fun formatDurationToMinutesAndSeconds(millisecondsDuration: Long): String {
         val duration = Duration.ofMillis(millisecondsDuration)
         val minutes = duration.toMinutes()
-        val seconds = duration.minusMinutes(minutes).seconds
+        val seconds = ("0" + duration.minusMinutes(minutes).seconds).takeLast(SECONDS_DIGITS)
         return "$minutes:$seconds"
     }
 
@@ -32,6 +34,12 @@ object Constants {
         val duration = Duration.ofMillis(millisecondsDuration)
         val hours = duration.toHours()
         val minutes = duration.minusHours(hours).toMinutes()
-        return "${hours}h ${minutes}min"
+        return if (hours == 0L && minutes == 0L) {
+            "< min"
+        } else if (hours == 0L) {
+            "$minutes min"
+        } else {
+            "$hours h $minutes min"
+        }
     }
 }
