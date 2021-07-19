@@ -67,7 +67,7 @@ class UserRoomsAdapter(
         }
 
         override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenuInfo?) {
-            menu.add("Remove from favorites").setOnMenuItemClickListener {
+            menu.add("Remove from history").setOnMenuItemClickListener {
                 listener.onItemDeleted(room)
                 true
             }

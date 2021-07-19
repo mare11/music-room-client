@@ -37,7 +37,6 @@ class MainActivity : AppCompatActivity(), CreateRoomDialogListener, JoinRoomDial
     private lateinit var userRoomsAdapter: UserRoomsAdapter
     private lateinit var joinRoomInput: TextInputEditText
 
-    // TODO: extract some of this code to onCreateView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)

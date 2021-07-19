@@ -19,6 +19,12 @@ object Constants {
     const val DEFAULT_FILE_NAME = "Unknown title"
     const val DEFAULT_FILE_DURATION = 0L
 
+    const val ARG_ROOM_CODE = "roomCode"
+    const val ARG_USER_NAME = "userName"
+    const val ARG_LISTENERS = "listeners"
+    const val ARG_CURRENT_SONG = "currentSong"
+    const val ARG_PLAYLIST = "playlist"
+
     const val ROOM_CODE = "ROOM_CODE"
 
     private const val SECONDS_DIGITS = 2

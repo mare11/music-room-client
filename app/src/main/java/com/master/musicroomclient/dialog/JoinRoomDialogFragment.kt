@@ -14,6 +14,7 @@ import com.master.musicroomclient.R
 import com.master.musicroomclient.model.Room
 import com.master.musicroomclient.model.RoomDetails
 import com.master.musicroomclient.utils.ApiUtils.musicRoomApi
+import com.master.musicroomclient.utils.Constants.ROOM_EXTRA
 import com.master.musicroomclient.utils.Constants.USER_NAME_PREFERENCE_KEY
 import com.master.musicroomclient.utils.SnackBarUtils.showSnackBar
 import retrofit2.Call
@@ -45,7 +46,7 @@ class JoinRoomDialogFragment : DialogFragment() {
         super.onCreate(savedInstanceState)
 
         arguments?.let { bundle ->
-            bundle.getParcelable<Room>(ARG_ROOM)?.also { room = it }
+            bundle.getParcelable<Room>(ROOM_EXTRA)?.also { room = it }
         }
     }
 
@@ -130,13 +131,11 @@ class JoinRoomDialogFragment : DialogFragment() {
     }
 
     companion object {
-        private const val ARG_ROOM = "room"
-
         @JvmStatic
         fun newInstance(room: Room) =
             JoinRoomDialogFragment().apply {
                 arguments = Bundle().apply {
-                    putParcelable(ARG_ROOM, room)
+                    putParcelable(ROOM_EXTRA, room)
                 }
             }
     }

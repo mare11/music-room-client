@@ -12,6 +12,9 @@ import com.master.musicroomclient.adapter.ListenerListAdapter
 import com.master.musicroomclient.model.Listener
 import com.master.musicroomclient.utils.ApiUtils.gson
 import com.master.musicroomclient.utils.ApiUtils.musicRoomStompClient
+import com.master.musicroomclient.utils.Constants.ARG_LISTENERS
+import com.master.musicroomclient.utils.Constants.ARG_ROOM_CODE
+import com.master.musicroomclient.utils.SnackBarUtils
 import io.reactivex.disposables.CompositeDisposable
 import ua.naiksoftware.stomp.dto.StompMessage
 
@@ -38,7 +41,7 @@ class RoomListenersFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_room_listeners, container, false)
 
         if (!this::roomCode.isInitialized || !this::listeners.isInitialized) {
-            // TODO: show some error message
+            SnackBarUtils.showSnackBar(view, "View could not be loaded")
             return view
         }
         adapter = ListenerListAdapter(listeners.toMutableList())
@@ -89,9 +92,6 @@ class RoomListenersFragment : Fragment() {
     }
 
     companion object {
-        private const val ARG_ROOM_CODE = "roomCode"
-        private const val ARG_LISTENERS = "listeners"
-
         @JvmStatic
         fun newInstance(roomCode: String, listeners: List<Listener>) =
             RoomListenersFragment().apply {

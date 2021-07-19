@@ -25,6 +25,9 @@ import com.master.musicroomclient.utils.ApiUtils.gson
 import com.master.musicroomclient.utils.ApiUtils.musicRoomApi
 import com.master.musicroomclient.utils.ApiUtils.musicRoomStompClient
 import com.master.musicroomclient.utils.Constants
+import com.master.musicroomclient.utils.Constants.ARG_CURRENT_SONG
+import com.master.musicroomclient.utils.Constants.ARG_ROOM_CODE
+import com.master.musicroomclient.utils.Constants.ARG_USER_NAME
 import com.master.musicroomclient.utils.Constants.ROOM_CODE
 import com.master.musicroomclient.utils.Constants.SERVER_HOST
 import com.master.musicroomclient.utils.Constants.SERVER_STREAM_PORT
@@ -92,7 +95,7 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
         val view = inflater.inflate(R.layout.fragment_room_player, container, false)
 
         if (!this::roomCode.isInitialized || !this::userName.isInitialized) {
-            // TODO: show some error message
+            showSnackBar(view, "View could not be loaded")
             return view
         }
 
@@ -265,7 +268,7 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
                     "file",
                     "",
                     fileRequest
-                ) // TODO: check filename
+                ) // filename is empty because it's sent as additional parameter
             val namePart = RequestBody.create(MediaType.parse("text/plain"), fileName)
             val durationPart =
                 RequestBody.create(MediaType.parse("text/plain"), fileDuration.toString())
@@ -347,10 +350,6 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
     }
 
     companion object {
-        private const val ARG_ROOM_CODE = "roomCode"
-        private const val ARG_CURRENT_SONG = "currentSong"
-        private const val ARG_USER_NAME = "userName"
-
         @JvmStatic
         fun newInstance(roomCode: String, currentSong: CurrentSong?, userName: String) =
             RoomPlayerFragment().apply {

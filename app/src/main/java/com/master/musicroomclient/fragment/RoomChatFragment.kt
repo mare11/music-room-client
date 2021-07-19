@@ -14,7 +14,9 @@ import com.master.musicroomclient.adapter.MessageListAdapter
 import com.master.musicroomclient.model.Message
 import com.master.musicroomclient.utils.ApiUtils.gson
 import com.master.musicroomclient.utils.ApiUtils.musicRoomStompClient
-import com.master.musicroomclient.utils.SnackBarUtils
+import com.master.musicroomclient.utils.Constants.ARG_ROOM_CODE
+import com.master.musicroomclient.utils.Constants.ARG_USER_NAME
+import com.master.musicroomclient.utils.SnackBarUtils.showSnackBar
 import io.reactivex.disposables.CompositeDisposable
 import ua.naiksoftware.stomp.dto.StompMessage
 import java.time.Instant
@@ -45,7 +47,7 @@ class RoomChatFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_chat, container, false)
 
         if (!this::roomCode.isInitialized || !this::userName.isInitialized) {
-            // TODO: show some error message
+            showSnackBar(view, "View could not be loaded")
             return view
         }
 
@@ -67,7 +69,7 @@ class RoomChatFragment : Fragment() {
                     gson.toJson(sentMessage)
                 ).subscribe({ sendMessageText.text.clear() },
                     {
-                        SnackBarUtils.showSnackBar(
+                        showSnackBar(
                             requireView().findViewById(android.R.id.content),
                             "Error sending message"
                         )
@@ -97,9 +99,6 @@ class RoomChatFragment : Fragment() {
     }
 
     companion object {
-        private const val ARG_ROOM_CODE = "roomCode"
-        private const val ARG_USER_NAME = "userName"
-
         @JvmStatic
         fun newInstance(roomCode: String, userName: String) =
             RoomChatFragment().apply {
