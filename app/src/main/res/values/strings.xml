@@ -3,4 +3,13 @@
     <string name="tab_chat_text">Chat</string>
     <string name="tab_playlist_text">Playlist</string>
     <string name="tab_listeners_text">Listeners</string>
+    <string name="enter_room_code_hint">Enter room code</string>
+    <string name="new_room_dialog_header">New room</string>
+    <string name="room_name_hint">Room name</string>
+    <string name="private_switch">Private</string>
+    <string name="enter_message_hint">Enter Message</string>
+    <string name="uploaded_by_label">uploaded by</string>
+    <string name="name_in_the_room_hint">Name in the room</string>
+    <string name="room_icon_cont_desc">Room icon</string>
+    <string name="number_of_listeners_icon_cont_desc">Number of listeners icon</string>
 </resources>

@@ -27,7 +27,7 @@
                 android:layout_height="60dp"
                 cardView:layout_constraintStart_toStartOf="parent"
                 cardView:layout_constraintTop_toTopOf="parent"
-                android:contentDescription="Room icon" />
+                android:contentDescription="@string/room_icon_cont_desc" />
 
             <TextView
                 android:id="@+id/user_room_name"
@@ -62,7 +62,7 @@
                 cardView:layout_constraintBottom_toBottomOf="parent"
                 android:layout_marginEnd="5dp"
                 android:background="@drawable/ic_baseline_people_on_primary_24"
-                android:contentDescription="Number of listeners icon" />
+                android:contentDescription="@string/number_of_listeners_icon_cont_desc" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

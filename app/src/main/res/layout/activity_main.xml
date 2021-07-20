@@ -14,7 +14,7 @@
         android:layout_margin="8dp"
         app:layout_constraintTop_toTopOf="parent"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        android:hint="Enter room code"
+        android:hint="@string/enter_room_code_hint"
         app:endIconMode="custom"
         app:endIconTint="?attr/colorPrimary"
         app:endIconContentDescription="Join room"

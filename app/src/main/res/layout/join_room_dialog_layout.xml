@@ -31,7 +31,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginLeft="4dp"
         android:layout_marginRight="4dp"
-        android:hint="Name in the room"
+        android:hint="@string/name_in_the_room_hint"
         android:importantForAutofill="no" />
 
 </LinearLayout>

@@ -51,7 +51,7 @@
                 app:layout_constraintTop_toBottomOf="@id/song_name"
                 app:layout_constraintBottom_toBottomOf="@id/song_uploader"
                 app:layout_constraintEnd_toStartOf="@id/song_uploader"
-                android:text="uploaded by" />
+                android:text="@string/uploaded_by_label" />
 
             <TextView
                 android:id="@+id/song_uploader"

@@ -38,7 +38,7 @@
             android:layout_marginStart="16dp"
             android:layout_toStartOf="@+id/send_message_button"
             android:background="@android:color/transparent"
-            android:hint="Enter Message"
+            android:hint="@string/enter_message_hint"
             android:inputType="text"
             android:maxLines="6"
             tools:ignore="Autofill" />
