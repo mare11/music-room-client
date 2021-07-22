@@ -122,7 +122,8 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
                 requireActivity().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText(ROOM_CODE, roomCode)
             clipboard.setPrimaryClip(clip)
-            Toast.makeText(requireContext(), "Room code copied!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.room_code_copy), Toast.LENGTH_SHORT)
+                .show()
         }
 
         skipSongButton = view.findViewById<Button>(R.id.skip_song_button)

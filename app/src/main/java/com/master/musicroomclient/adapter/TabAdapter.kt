@@ -6,6 +6,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
 import com.master.musicroomclient.R
+import com.master.musicroomclient.adapter.TabAdapter.Companion.TabIndexes.ROOM_LISTENERS
+import com.master.musicroomclient.adapter.TabAdapter.Companion.TabIndexes.ROOM_PLAYLIST
 import com.master.musicroomclient.fragment.RoomChatFragment
 import com.master.musicroomclient.fragment.RoomListenersFragment
 import com.master.musicroomclient.fragment.RoomPlaylistFragment
@@ -20,9 +22,12 @@ class TabAdapter(
 
     override fun getItem(position: Int): Fragment {
         return when (position) {
-            2 -> RoomListenersFragment.newInstance(roomDetails.code, roomDetails.listeners)
-            1 -> RoomPlaylistFragment.newInstance(roomDetails.code, roomDetails.playlist)
-            else -> RoomChatFragment.newInstance(roomDetails.code, userName)
+            ROOM_LISTENERS.ordinal ->
+                RoomListenersFragment.newInstance(roomDetails.code, roomDetails.listeners)
+            ROOM_PLAYLIST.ordinal ->
+                RoomPlaylistFragment.newInstance(roomDetails.code, roomDetails.playlist)
+            else ->
+                RoomChatFragment.newInstance(roomDetails.code, userName)
         }
     }
 
@@ -38,5 +43,7 @@ class TabAdapter(
         @StringRes
         private val TAB_TITLES =
             arrayOf(R.string.tab_chat_text, R.string.tab_playlist_text, R.string.tab_listeners_text)
+
+        enum class TabIndexes { ROOM_CHAT, ROOM_PLAYLIST, ROOM_LISTENERS }
     }
 }

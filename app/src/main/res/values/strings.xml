@@ -12,4 +12,6 @@
     <string name="name_in_the_room_hint">Name in the room</string>
     <string name="room_icon_cont_desc">Room icon</string>
     <string name="number_of_listeners_icon_cont_desc">Number of listeners icon</string>
+    <string name="double_back_press">Click BACK again to exit the room</string>
+    <string name="room_code_copy">Room code copied!</string>
 </resources>

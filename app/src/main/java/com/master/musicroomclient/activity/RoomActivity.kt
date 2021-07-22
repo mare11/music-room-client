@@ -6,6 +6,7 @@ import android.os.Looper
 import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.viewpager.widget.ViewPager
 import com.google.android.material.tabs.TabLayout
 import com.master.musicroomclient.R
@@ -15,14 +16,18 @@ import com.master.musicroomclient.model.RoomDetails
 import com.master.musicroomclient.utils.ApiUtils.musicRoomApi
 import com.master.musicroomclient.utils.Constants.ROOM_EXTRA
 import com.master.musicroomclient.utils.Constants.USER_NAME_EXTRA
+import com.master.musicroomclient.utils.TabLayoutBadgeListener
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 
-class RoomActivity : AppCompatActivity() {
+class RoomActivity
+    : AppCompatActivity(), TabLayoutBadgeListener {
 
     private val handler = Handler(Looper.getMainLooper())
+    private lateinit var tabLayout: TabLayout
+    private lateinit var viewPager: ViewPager
     private lateinit var userName: String
     private lateinit var roomDetails: RoomDetails
     private var doubleBackToExitPressedOnce = false
@@ -49,15 +54,14 @@ class RoomActivity : AppCompatActivity() {
                 this@RoomActivity,
                 this@RoomActivity.supportFragmentManager
             )
-            val viewPager = findViewById<ViewPager>(R.id.view_pager)
+            viewPager = findViewById<ViewPager>(R.id.view_pager)
             viewPager.adapter = tabAdapter
             viewPager.offscreenPageLimit = 2
-            val tabLayout = findViewById<TabLayout>(R.id.tab_layout)
+            tabLayout = findViewById<TabLayout>(R.id.tab_layout)
             tabLayout.setupWithViewPager(viewPager)
             // TODO: setup icons and badges for tabs
-//            tabLayout.getTabAt(1)?.icon =
-//                ContextCompat.getDrawable(this, R.drawable.ic_baseline_audiotrack_on_primary_60)
-//            tabLayout.getTabAt(0)?.orCreateBadge?.number = 3
+            tabLayout.getTabAt(0)?.icon =
+                ContextCompat.getDrawable(this, R.drawable.ic_baseline_people_on_primary_24)
         } else {
             setResult(RESULT_CANCELED)
             finish()
@@ -90,9 +94,28 @@ class RoomActivity : AppCompatActivity() {
             return
         }
         doubleBackToExitPressedOnce = true
-        Toast.makeText(this, "Click BACK again to exit the room", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, getString(R.string.double_back_press), Toast.LENGTH_SHORT).show()
         handler.postDelayed({
             doubleBackToExitPressedOnce = false
         }, 2000)
+    }
+
+    override fun onTabEvent(tabIndex: Int) {
+        // when current tab is not the same as one triggering the event
+        if (viewPager.currentItem != tabIndex) {
+            // increment badge number and show badge if it is hidden
+            tabLayout.getTabAt(tabIndex)?.orCreateBadge?.let {
+                it.number++
+                it.isVisible = true
+            }
+        }
+    }
+
+    override fun onTabResume(tabIndex: Int) {
+        // reset badge number and hide badge
+        tabLayout.getTabAt(tabIndex)?.badge?.let {
+            it.number = 0
+            it.isVisible = false
+        }
     }
 }

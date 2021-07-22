@@ -1,5 +1,7 @@
 package com.master.musicroomclient.fragment
 
+import android.app.Activity.RESULT_CANCELED
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,12 +11,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.master.musicroomclient.R
 import com.master.musicroomclient.adapter.ListenerListAdapter
+import com.master.musicroomclient.adapter.TabAdapter.Companion.TabIndexes.ROOM_LISTENERS
 import com.master.musicroomclient.model.Listener
 import com.master.musicroomclient.utils.ApiUtils.gson
 import com.master.musicroomclient.utils.ApiUtils.musicRoomStompClient
 import com.master.musicroomclient.utils.Constants.ARG_LISTENERS
 import com.master.musicroomclient.utils.Constants.ARG_ROOM_CODE
 import com.master.musicroomclient.utils.SnackBarUtils
+import com.master.musicroomclient.utils.TabLayoutBadgeListener
 import io.reactivex.disposables.CompositeDisposable
 import ua.naiksoftware.stomp.dto.StompMessage
 
@@ -24,6 +28,7 @@ class RoomListenersFragment : Fragment() {
     private lateinit var listeners: List<Listener>
     private lateinit var adapter: ListenerListAdapter
     private val compositeDisposable = CompositeDisposable()
+    private lateinit var tabListener: TabLayoutBadgeListener
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,10 +60,25 @@ class RoomListenersFragment : Fragment() {
         return view
     }
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        val activity = requireActivity()
+        if (activity is TabLayoutBadgeListener) {
+            tabListener = activity
+        } else {
+            activity.setResult(RESULT_CANCELED)
+            activity.finish()
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         if (this::adapter.isInitialized) {
             adapter.notifyDataSetChanged()
+        }
+        // TODO: do same checks in other fragments and remove setResult and finish in onAttach
+        if (this::tabListener.isInitialized) {
+            tabListener.onTabResume(ROOM_LISTENERS.ordinal)
         }
     }
 
@@ -74,6 +94,7 @@ class RoomListenersFragment : Fragment() {
                     val newListener = gson.fromJson(topicMessage.payload, Listener::class.java)
                     requireActivity().runOnUiThread {
                         adapter.addListener(newListener)
+                        tabListener.onTabEvent(ROOM_LISTENERS.ordinal)
                         println("Listener '${newListener.name}' connected at '${newListener.connectedAt}'!")
                     }
                 }

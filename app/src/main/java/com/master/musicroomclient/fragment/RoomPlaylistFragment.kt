@@ -1,5 +1,7 @@
 package com.master.musicroomclient.fragment
 
+import android.app.Activity.RESULT_CANCELED
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,12 +11,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.master.musicroomclient.R
 import com.master.musicroomclient.adapter.SongListAdapter
+import com.master.musicroomclient.adapter.TabAdapter.Companion.TabIndexes.ROOM_PLAYLIST
 import com.master.musicroomclient.model.Song
 import com.master.musicroomclient.utils.ApiUtils.gson
 import com.master.musicroomclient.utils.ApiUtils.musicRoomStompClient
 import com.master.musicroomclient.utils.Constants.ARG_PLAYLIST
 import com.master.musicroomclient.utils.Constants.ARG_ROOM_CODE
 import com.master.musicroomclient.utils.SnackBarUtils.showSnackBar
+import com.master.musicroomclient.utils.TabLayoutBadgeListener
 import io.reactivex.disposables.CompositeDisposable
 import ua.naiksoftware.stomp.dto.StompMessage
 
@@ -24,6 +28,7 @@ class RoomPlaylistFragment : Fragment() {
     private lateinit var playlist: List<Song>
     private lateinit var adapter: SongListAdapter
     private val compositeDisposable = CompositeDisposable()
+    private lateinit var tabListener: TabLayoutBadgeListener
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,12 +60,29 @@ class RoomPlaylistFragment : Fragment() {
         return view
     }
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        val activity = requireActivity()
+        if (activity is TabLayoutBadgeListener) {
+            tabListener = activity
+        } else {
+            activity.setResult(RESULT_CANCELED)
+            activity.finish()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        tabListener.onTabResume(ROOM_PLAYLIST.ordinal)
+    }
+
     private fun connectToSongTopics() {
         val addSongTopicDisposable = musicRoomStompClient.topic("/topic/room/$roomCode/song/add")
             .subscribe { topicMessage: StompMessage ->
                 val newSong = gson.fromJson(topicMessage.payload, Song::class.java)
                 requireActivity().runOnUiThread {
                     adapter.addSong(newSong)
+                    tabListener.onTabEvent(ROOM_PLAYLIST.ordinal)
                     println("Song '${newSong.name}' added to playlist by '${newSong.uploader}'!")
                 }
             }
