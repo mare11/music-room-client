@@ -6,11 +6,11 @@ import android.os.Looper
 import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.viewpager.widget.ViewPager
 import com.google.android.material.tabs.TabLayout
 import com.master.musicroomclient.R
 import com.master.musicroomclient.adapter.TabAdapter
+import com.master.musicroomclient.adapter.TabAdapter.Companion.TabIndexes.*
 import com.master.musicroomclient.fragment.RoomPlayerFragment
 import com.master.musicroomclient.model.RoomDetails
 import com.master.musicroomclient.utils.ApiUtils.musicRoomApi
@@ -59,9 +59,12 @@ class RoomActivity
             viewPager.offscreenPageLimit = 2
             tabLayout = findViewById<TabLayout>(R.id.tab_layout)
             tabLayout.setupWithViewPager(viewPager)
-            // TODO: setup icons and badges for tabs
-            tabLayout.getTabAt(0)?.icon =
-                ContextCompat.getDrawable(this, R.drawable.ic_baseline_people_on_primary_24)
+//            tabLayout.getTabAt(ROOM_CHAT.ordinal)?.icon =
+//                ContextCompat.getDrawable(this, R.drawable.ic_baseline_chat_primary_24)
+//            tabLayout.getTabAt(ROOM_PLAYLIST.ordinal)?.icon =
+//                ContextCompat.getDrawable(this, R.drawable.ic_baseline_playlist_play_primary_24)
+//            tabLayout.getTabAt(ROOM_LISTENERS.ordinal)?.icon =
+//                ContextCompat.getDrawable(this, R.drawable.ic_baseline_people_on_primary_24)
         } else {
             setResult(RESULT_CANCELED)
             finish()
