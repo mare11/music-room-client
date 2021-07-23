@@ -1,6 +1,5 @@
 package com.master.musicroomclient.fragment
 
-import android.app.Activity.RESULT_CANCELED
 import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -65,15 +64,14 @@ class RoomPlaylistFragment : Fragment() {
         val activity = requireActivity()
         if (activity is TabLayoutBadgeListener) {
             tabListener = activity
-        } else {
-            activity.setResult(RESULT_CANCELED)
-            activity.finish()
         }
     }
 
     override fun onResume() {
         super.onResume()
-        tabListener.onTabResume(ROOM_PLAYLIST.ordinal)
+        if (this::tabListener.isInitialized) {
+            tabListener.onTabResume(ROOM_PLAYLIST.ordinal)
+        }
     }
 
     private fun connectToSongTopics() {
