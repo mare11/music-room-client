@@ -15,7 +15,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity.RESULT_OK
 import androidx.fragment.app.Fragment
 import com.master.musicroomclient.R
 import com.master.musicroomclient.model.CurrentSong
@@ -50,16 +50,14 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
 
     private val libVLC by lazy {
         LibVLC(activity, ArrayList<String>().apply {
-//            add("--sout-keep")
-//            add("--rtsp-tcp")
             add("-vvv")
         })
     }
+    private val mediaPlayer by lazy { MediaPlayer(libVLC) }
 
     private lateinit var roomCode: String
     private lateinit var userName: String
     private var currentSong: CurrentSong? = null
-    private val mediaPlayer by lazy { MediaPlayer(libVLC) }
     private val handler by lazy { Handler(Looper.getMainLooper()) }
     private lateinit var songNameText: TextView
     private lateinit var songUploaderText: TextView
@@ -69,7 +67,7 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
     private lateinit var songTotalTimeText: TextView
     private lateinit var addSongButton: Button
     private lateinit var addSongProgressBar: ProgressBar
-    private lateinit var skipSongButton: Button
+    private lateinit var nextSongButton: Button
     private val compositeDisposable: CompositeDisposable = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -108,7 +106,7 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
         seekBar = view.findViewById(R.id.player_seek_bar)
         seekBar.setOnTouchListener { _, _ -> true } // FIXME
 
-        addSongButton = view.findViewById<Button>(R.id.add_song_button)
+        addSongButton = view.findViewById(R.id.add_song_button)
         addSongButton.setOnClickListener {
             val getFileIntent = Intent(Intent.ACTION_GET_CONTENT)
             getFileIntent.type = "audio/*"
@@ -126,17 +124,17 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
                 .show()
         }
 
-        skipSongButton = view.findViewById<Button>(R.id.skip_song_button)
-        skipSongButton.isEnabled = false
-        skipSongButton.setOnClickListener {
-            val roomCall = musicRoomApi.skipSong(roomCode)
+        nextSongButton = view.findViewById<Button>(R.id.next_song_button)
+        nextSongButton.isEnabled = false
+        nextSongButton.setOnClickListener {
+            val roomCall = musicRoomApi.nextSong(roomCode)
             roomCall.enqueue(object : Callback<Void> {
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
-                    Log.i("SKIP_SONG", "Success!!")
+                    Log.i("NEXT_SONG", "Success!!")
                 }
 
                 override fun onFailure(call: Call<Void>, t: Throwable) {
-                    Log.i("SKIP_SONG", "Error!!")
+                    Log.i("NEXT_SONG", "Error!!")
                 }
             })
         }
@@ -156,7 +154,7 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
             seekBar.progress = it.elapsedDuration.toInt()
             songCurrentTimeText.text = formatDurationToMinutesAndSeconds(0L)
             songTotalTimeText.text = formatDurationToMinutesAndSeconds(it.song.duration)
-            skipSongButton.isEnabled = it.song.uploader == userName
+            nextSongButton.isEnabled = it.song.uploader == userName
             handler.postDelayed(updateSongTime, 1000)
         }
 
@@ -192,7 +190,7 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == Constants.FILE_REQUEST_CODE && resultCode == AppCompatActivity.RESULT_OK) {
+        if (requestCode == Constants.FILE_REQUEST_CODE && resultCode == RESULT_OK) {
             data?.data?.let { uri -> uploadFile(uri) }
         }
     }
@@ -201,7 +199,6 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
         val path = "rtsp://$SERVER_HOST:$SERVER_STREAM_PORT/$roomCode"
         val media = Media(libVLC, Uri.parse(path))
         mediaPlayer.media = media
-        media.release()
         mediaPlayer.setEventListener(this)
     }
 
@@ -226,7 +223,7 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
                     songCurrentTimeText.text = formatDurationToMinutesAndSeconds(0L)
                     songTotalTimeText.text =
                         formatDurationToMinutesAndSeconds(nextSong.duration)
-                    skipSongButton.isEnabled = nextSong.uploader == userName
+                    nextSongButton.isEnabled = nextSong.uploader == userName
                 }
             }
         compositeDisposable.add(topicDisposable)
@@ -252,7 +249,7 @@ class RoomPlayerFragment : Fragment(), MediaPlayer.EventListener {
                 seekBar.progress = 0
                 songCurrentTimeText.text = ""
                 songTotalTimeText.text = ""
-                skipSongButton.isEnabled = false
+                nextSongButton.isEnabled = false
                 handler.removeCallbacks(updateSongTime)
             }
         }

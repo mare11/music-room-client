@@ -19,17 +19,19 @@ import com.master.musicroomclient.dialog.JoinRoomDialogFragment
 import com.master.musicroomclient.dialog.JoinRoomDialogFragment.JoinRoomDialogListener
 import com.master.musicroomclient.model.Room
 import com.master.musicroomclient.model.RoomDetails
-import com.master.musicroomclient.utils.ApiUtils
 import com.master.musicroomclient.utils.ApiUtils.musicRoomApi
-import com.master.musicroomclient.utils.Constants
+import com.master.musicroomclient.utils.ApiUtils.stompClientDelegate
 import com.master.musicroomclient.utils.Constants.ROOM_EXTRA
 import com.master.musicroomclient.utils.Constants.ROOM_REQUEST_CODE
 import com.master.musicroomclient.utils.Constants.USER_NAME_EXTRA
+import com.master.musicroomclient.utils.Constants.USER_NAME_PREFERENCE_KEY
 import com.master.musicroomclient.utils.Constants.USER_ROOMS_PREFERENCE_KEY
 import com.master.musicroomclient.utils.SnackBarUtils.showSnackBar
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.*
+import kotlin.collections.HashSet
 
 class MainActivity : AppCompatActivity(), CreateRoomDialogListener, JoinRoomDialogListener,
     UserRoomsAdapter.OnItemClickListener {
@@ -92,19 +94,15 @@ class MainActivity : AppCompatActivity(), CreateRoomDialogListener, JoinRoomDial
     override fun onJoinRoomDialogPositiveClose(userName: String, roomDetails: RoomDetails) {
         Toast.makeText(this, "Name from dialog: $userName", Toast.LENGTH_SHORT).show()
 
-        val defaultSharedPreferences =
-            PreferenceManager.getDefaultSharedPreferences(this)
-        val userRooms = HashSet(
-            defaultSharedPreferences.getStringSet(
-                USER_ROOMS_PREFERENCE_KEY,
-                HashSet<String>()
-            )
-        )
-        userRooms.add(roomDetails.code)
-        defaultSharedPreferences.edit()
-            .putStringSet(USER_ROOMS_PREFERENCE_KEY, userRooms).apply()
-        defaultSharedPreferences.edit()
-            .putString(Constants.USER_NAME_PREFERENCE_KEY, userName).apply()
+        val preferences = PreferenceManager.getDefaultSharedPreferences(this)
+        val userRooms = preferences.getStringSet(USER_ROOMS_PREFERENCE_KEY, null)
+            ?: emptySet()
+        val copyOfUserRooms = userRooms.toMutableSet()
+        copyOfUserRooms.add(roomDetails.code)
+        preferences.edit()
+            .putStringSet(USER_ROOMS_PREFERENCE_KEY, copyOfUserRooms)
+            .putString(USER_NAME_PREFERENCE_KEY, userName)
+            .apply()
 
         startRoomActivity(userName, roomDetails)
     }
@@ -114,17 +112,12 @@ class MainActivity : AppCompatActivity(), CreateRoomDialogListener, JoinRoomDial
     }
 
     override fun onItemDeleted(room: Room) {
-        val defaultSharedPreferences =
-            PreferenceManager.getDefaultSharedPreferences(this)
-        val userRooms = HashSet(
-            defaultSharedPreferences.getStringSet(
-                USER_ROOMS_PREFERENCE_KEY,
-                HashSet<String>()
-            )
-        )
-        userRooms.remove(room.code)
-        defaultSharedPreferences.edit()
-            .putStringSet(USER_ROOMS_PREFERENCE_KEY, userRooms).apply()
+        val preferences = PreferenceManager.getDefaultSharedPreferences(this)
+        val userRooms = preferences.getStringSet(USER_ROOMS_PREFERENCE_KEY, null) ?: emptySet()
+        val copyOfUserRooms = userRooms.toMutableSet()
+        copyOfUserRooms.remove(room.code)
+        preferences.edit()
+            .putStringSet(USER_ROOMS_PREFERENCE_KEY, copyOfUserRooms).apply()
 
         userRoomsAdapter.removeRoom(room)
 
@@ -191,7 +184,7 @@ class MainActivity : AppCompatActivity(), CreateRoomDialogListener, JoinRoomDial
     // TODO: check can this be done on some application shutdown event
     override fun onDestroy() {
         super.onDestroy()
-        with(ApiUtils.stompClientDelegate) {
+        with(stompClientDelegate) {
             if (isInitialized()) {
                 value.disconnect()
             }

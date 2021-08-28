@@ -30,7 +30,7 @@
         app:layout_constraintTop_toBottomOf="@id/song_name_text"
         app:layout_constraintBottom_toBottomOf="@id/song_uploader_text"
         app:layout_constraintEnd_toStartOf="@id/song_uploader_text"
-        android:text="uploaded by"
+        android:text="@string/uploaded_by_label"
         tools:visibility="visible" />
 
 
@@ -72,45 +72,6 @@
         android:layout_marginEnd="10dp"
         tools:text="3:45" />
 
-    <!--    <LinearLayout-->
-    <!--        android:layout_width="match_parent"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:orientation="horizontal"-->
-    <!--        app:layout_constraintTop_toBottomOf="@id/song_current_time_text">-->
-
-    <!--        <Button-->
-    <!--            android:id="@+id/add_song_button"-->
-    <!--            android:layout_width="wrap_content"-->
-    <!--            android:layout_height="wrap_content"-->
-    <!--            android:layout_marginStart="10dp"-->
-    <!--            app:icon="@drawable/ic_baseline_playlist_add_primary_24"-->
-    <!--            app:iconGravity="textStart"-->
-    <!--            app:iconPadding="0dp"-->
-    <!--            android:text="Add song"-->
-    <!--            style="?android:attr/buttonBarButtonStyle" />-->
-
-    <!--        <Button-->
-    <!--            android:id="@+id/copy_room_code_button"-->
-    <!--            android:layout_width="wrap_content"-->
-    <!--            android:layout_height="wrap_content"-->
-    <!--            android:layout_marginStart="10dp"-->
-    <!--            app:icon="@drawable/ic_baseline_copy_primary_24"-->
-    <!--            app:iconPadding="0dp"-->
-    <!--            android:text="Copy code"-->
-    <!--            style="?android:attr/buttonBarButtonStyle" />-->
-
-    <!--        <Button-->
-    <!--            android:id="@+id/skip_song_button"-->
-    <!--            android:layout_width="wrap_content"-->
-    <!--            android:layout_height="wrap_content"-->
-    <!--            android:layout_marginStart="10dp"-->
-    <!--            app:icon="@drawable/ic_baseline_skip_next_primary_24"-->
-    <!--            app:iconPadding="0dp"-->
-    <!--            android:text="Skip song"-->
-    <!--            style="?android:attr/buttonBarButtonStyle" />-->
-
-    <!--    </LinearLayout>-->
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/button_bar_layout"
         android:layout_width="match_parent"
@@ -135,7 +96,7 @@
                 app:icon="@drawable/ic_baseline_playlist_add_primary_24"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
-                android:text="Add song"
+                android:text="@string/add_song"
                 style="?android:attr/buttonBarButtonStyle" />
 
             <ProgressBar
@@ -156,14 +117,14 @@
             android:layout_marginStart="5dp"
             app:layout_constraintStart_toEndOf="@id/add_song_layout"
             app:layout_constraintTop_toTopOf="@id/add_song_layout"
-            app:layout_constraintEnd_toStartOf="@id/skip_song_button"
+            app:layout_constraintEnd_toStartOf="@id/next_song_button"
             app:icon="@drawable/ic_baseline_copy_primary_24"
             app:iconPadding="0dp"
-            android:text="Copy code"
+            android:text="@string/copy_code"
             style="?android:attr/buttonBarButtonStyle" />
 
         <Button
-            android:id="@+id/skip_song_button"
+            android:id="@+id/next_song_button"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
@@ -172,7 +133,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:icon="@drawable/ic_baseline_skip_next_primary_24"
             app:iconPadding="0dp"
-            android:text="Skip song"
+            android:text="@string/next_song"
             style="?android:attr/buttonBarButtonStyle" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

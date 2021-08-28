@@ -4,7 +4,7 @@ import java.time.Duration
 
 object Constants {
 
-    const val SERVER_HOST = "192.168.1.5"
+    const val SERVER_HOST = "192.168.1.10"
     const val SERVER_PORT = 8008
     const val SERVER_STREAM_PORT = 5555
 

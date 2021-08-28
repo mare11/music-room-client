@@ -101,7 +101,6 @@ class RoomListenersFragment : Fragment() {
                     val listenerName = topicMessage.payload
                     requireActivity().runOnUiThread {
                         adapter.removeListener(listenerName)
-                        println("Listener '$listenerName' disconnected!")
                     }
                 }
         compositeDisposable.add(disconnectTopicDisposable)

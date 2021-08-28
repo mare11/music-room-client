@@ -12,7 +12,6 @@ import ua.naiksoftware.stomp.Stomp
 import ua.naiksoftware.stomp.StompClient
 
 object ApiUtils {
-
     private const val HTTP_BASE_URL = "http://$SERVER_HOST:$SERVER_PORT/api/rooms/"
     private const val WS_BASE_URL = "ws://$SERVER_HOST:$SERVER_PORT/music-rooms"
 
@@ -22,6 +21,10 @@ object ApiUtils {
         .client(initializeOkHttpClient())
         .build()
 
+    val musicRoomApi: MusicRoomApi by lazy {
+        retrofit.create(MusicRoomApi::class.java)
+    }
+
     private fun initializeOkHttpClient(): OkHttpClient {
         val interceptor = HttpLoggingInterceptor()
         interceptor.level = HttpLoggingInterceptor.Level.BASIC
@@ -30,10 +33,6 @@ object ApiUtils {
             .build()
     }
 
-
-    val musicRoomApi: MusicRoomApi by lazy {
-        retrofit.create(MusicRoomApi::class.java)
-    }
 
     val stompClientDelegate = lazy {
         val stompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, WS_BASE_URL)

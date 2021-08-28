@@ -14,4 +14,7 @@
     <string name="number_of_listeners_icon_cont_desc">Number of listeners icon</string>
     <string name="double_back_press">Click BACK again to exit the room</string>
     <string name="room_code_copy">Room code copied!</string>
+    <string name="add_song">Add song</string>
+    <string name="copy_code">Copy code</string>
+    <string name="next_song">Next song</string>
 </resources>
